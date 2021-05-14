@@ -6,7 +6,6 @@ const mongoose = require('mongoose');
 const {url} = require('./databaseService');
 const bodyParser = require("body-parser");
 const cors = require("cors");
-console.log("Url" + url);
 
 app.use(cors());
 app.use(bodyParser.json());

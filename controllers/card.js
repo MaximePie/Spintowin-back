@@ -121,6 +121,7 @@ async function index(request, response) {
     })
     .sort({
       currentDelay: -1,
+      question: 1,
     })
     .find()
     .limit(50);
