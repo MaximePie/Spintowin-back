@@ -1,7 +1,7 @@
 const Card = require('../model/card');
+const User = require('../model/user');
 const {cards} = require('../data/cards');
 const fs = require("fs");
-
 
 /**
  * Only use for testing purpose !
@@ -9,9 +9,10 @@ const fs = require("fs");
  * @param response
  */
 function generate(request, response) {
+  const user = request.user;
   let added = 0;
   cards.forEach(card => {
-    createCard(card.question, card.answer);
+    createCard(card.question, card.answer, user);
     added++;
   });
   response.json({added});
@@ -37,24 +38,21 @@ function deleteAll(request, response) {
  * @param response
  */
 function create(request, response) {
+  const {user} = request;
   if (request.body) {
     let errors = [];
     const {question, answer} = request.body;
     const file = request.file;
     let cardImage = undefined;
-
-    response.json({
-      message: "Allez, zou",
-      question,
-      answer,
-      file,
-    })
+    console.log(file);
     if (file) {
       const {path, mimetype} = request.file;
       cardImage = {
         data: fs.readFileSync(path),
         contentType: mimetype
       }
+
+      console.log(cardImage)
     }
     if (!question && !file) {
       errors.push('Erreur, il faut un question');
@@ -65,7 +63,7 @@ function create(request, response) {
     }
 
     if (!errors.length) {
-      createCard(question, answer, response, cardImage);
+      createCard(question, answer, user, response, cardImage);
     } else {
       response.status(400).json({message: errors});
     }
@@ -102,19 +100,12 @@ async function update(request, response) {
 
 
 async function index(request, response) {
-
+  const user = request.user;
   const currentDate = new Date();
-  const totalCardsCount = await Card.count();
-  const eligibleCardsCount = await Card
-    .find({
-      nextQuestionAt: {
-        $lt: currentDate.valueOf()
-      }
-    })
-    .count();
 
   const cards = await Card
     .find({
+      user: user._id,
       nextQuestionAt: {
         $lt: currentDate.valueOf()
       }
@@ -128,8 +119,6 @@ async function index(request, response) {
 
   response.status(200).json({
     cards: cards,
-    total: totalCardsCount,
-    current: totalCardsCount - eligibleCardsCount,
   })
 }
 
@@ -137,10 +126,11 @@ async function index(request, response) {
  * Creates a card with the given parameters
  * @param question
  * @param answer
+ * @param user The user we want to attach to the Card
  * @param response
  * @param image
  */
-function createCard(question, answer, response = undefined, image = undefined) {
+function createCard(question, answer, user, response = undefined, image = undefined) {
   const newDate = new Date();
 
   Card.create({
@@ -149,9 +139,20 @@ function createCard(question, answer, response = undefined, image = undefined) {
     delay: 0,
     nextQuestionAt: newDate.valueOf(),
     image: image || null,
-  }, (error, data) => {
+    user: user._id,
+  }, async (error, data) => {
+    // Update the updatedUser list of cards
+    const updatedUser = await User.findById(user._id, (error, user) => {
+      user.cards.push(data._id);
+      user.save();
+    });
     if (response) {
-      response.status(200).json({message: 'La card a bien été créée ! Woohoo !', data, error});
+      response.status(200).json({
+        message: 'La card a bien été créée ! Woohoo !',
+        data,
+        error,
+        updatedUser,
+      });
     }
   });
 }
@@ -168,6 +169,32 @@ async function stats(request, response) {
   });
 }
 
+/**
+ * TODO - OMG DELETE THIS, BIG DANGER !
+ * @param request
+ * @param response
+ */
+module.exports.attach = async function(request, response) {
+  const cardsList = await Card.find({}, "_id");
+  const {user: connectedUser} = request;
+  const user = await User.findById(connectedUser._id);
+  await Card.updateMany({}, {
+    user: connectedUser._id,
+  });
+  const ids = cardsList.map((card) => {
+    return card._id
+  });
+  const userCards = user?.cards || [];
+  user.cards = [...userCards, ...ids];
+  user.save();
+
+  return response.json({
+    message: "Prêt à tout changer. Aïe aïe aïe",
+    ids,
+    cardsList
+  })
+}
+
 async function calculateTotalScore() {
   const filter = {$match: {currentDelay: {$gt: 0}}};
   const accumulator = {
@@ -180,7 +207,7 @@ async function calculateTotalScore() {
   };
 
   const [score] = await Card.aggregate([filter, accumulator]);
-  return score.totalAmount;
+  return score?.totalAmount || 0;
 }
 
 async function calculateMemorizedData() {
@@ -191,11 +218,11 @@ async function calculateMemorizedData() {
   const monthLength = 30 * dayLength;
 
   const results = {
-    moreThanOneMinute: await Card.count({currentDelay: {$gt: minuteLength}}),
-    moreThanOneHour: await Card.count({currentDelay: {$gt: hourLength}}),
-    moreThanOneDay: await Card.count({currentDelay: {$gt: dayLength}}),
-    moreThanOneWeek: await Card.count({currentDelay: {$gt: weekLength}}),
-    moreThanOneMonth: await Card.count({currentDelay: {$gt: monthLength}}),
+    moreThanOneMinute: await Card.countDocuments({currentDelay: {$gt: minuteLength}}),
+    moreThanOneHour: await Card.countDocuments({currentDelay: {$gt: hourLength}}),
+    moreThanOneDay: await Card.countDocuments({currentDelay: {$gt: dayLength}}),
+    moreThanOneWeek: await Card.countDocuments({currentDelay: {$gt: weekLength}}),
+    moreThanOneMonth: await Card.countDocuments({currentDelay: {$gt: monthLength}}),
   };
 
   return results
@@ -203,12 +230,12 @@ async function calculateMemorizedData() {
 
 async function calculateWorkInProgress() {
 
-  const numberOfWorkinProgressCards = await Card.count({
+  const numberOfWorkinProgressCards = await Card.countDocuments({
     currentDelay: {$gt: 0}
   });
-  const totalCards = await Card.count();
+  const totalCards = await Card.countDocuments();
 
-  const workInProgressPercentage = numberOfWorkinProgressCards * 100 / await Card.count();
+  const workInProgressPercentage = numberOfWorkinProgressCards * 100 / await Card.countDocuments();
   return {
     number: numberOfWorkinProgressCards,
     total: totalCards,

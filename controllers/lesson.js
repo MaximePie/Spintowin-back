@@ -33,7 +33,7 @@ function create(request, response) {
 
         // Update the chapter's list of Lessons
         Chapter.findById(chapter_id, (error, chapter) => {
-          chapter.lessons.push(data._id)
+          chapter.lessons.push(data._id);
           chapter.save();
         });
 

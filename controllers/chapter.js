@@ -37,7 +37,6 @@ function create(request, response) {
 
 async function index(request, response) {
   const chapters = await Chapter.find().populate('lessons');
-  console.log(chapters);
   response.status(200).json({
     chapters,
   })

@@ -8,6 +8,10 @@ const cardSchema = mongoose.Schema({
   image: {
     data: Buffer,
     contentType: String,
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   }
 });
 

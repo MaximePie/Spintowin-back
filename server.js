@@ -19,7 +19,7 @@ mongoose.connect(url,
 
 
 // Importing Routes
-const routes = require('./routes');
+const routes = require('./routes/routes');
 app.use('/', routes);
 
 const port = process.env.PORT || 4001;
