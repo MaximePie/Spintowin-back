@@ -4,6 +4,8 @@ const lessonsController = require('../controllers/lesson');
 const chapterController = require('../controllers/chapter');
 const cardsController = require('../controllers/card');
 const userController = require('../controllers/user');
+const seeder = require('../database/seeder');
+
 const multer  = require('multer');
 const upload = multer({ dest: './uploads/' });
 const verify = require('../routes/verifyToken');
@@ -33,9 +35,10 @@ router.get('/cards/stats', verify, cardsController.stats);
 router.post('/cards/', verify, upload.single('file'), cardsController.create);
 router.post('/cards/:id', verify, cardsController.update);
 // app.delete('/your_route/:id', cardsController.delete);
-router.get('/cards/seeds', verify, cardsController.generate);
 router.get('/cards/deleteAll', verify, cardsController.deleteAll);
 router.get('/cards/attachToConnectedUser', verify, cardsController.attach);
+
+router.get('/seed', seeder.seed);
 
 
 module.exports = router;

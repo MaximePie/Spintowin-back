@@ -20,6 +20,14 @@ const userSchema = mongoose.Schema({
     max: 255,
     min: 6
   },
+  experience: {
+    type: Number,
+    default: 0,
+  },
+  level: {
+    type: Number,
+    default: 0,
+  },
   cards:[ // Used for foreign key purpose
     {type: Schema.Types.ObjectId, ref: 'Card'}
   ]

@@ -44,15 +44,12 @@ function create(request, response) {
     const {question, answer} = request.body;
     const file = request.file;
     let cardImage = undefined;
-    console.log(file);
     if (file) {
       const {path, mimetype} = request.file;
       cardImage = {
         data: fs.readFileSync(path),
         contentType: mimetype
       }
-
-      console.log(cardImage)
     }
     if (!question && !file) {
       errors.push('Erreur, il faut un question');
