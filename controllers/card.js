@@ -70,6 +70,7 @@ function create(request, response) {
 }
 
 async function update(request, response) {
+
   const {newDelay} = request.body;
   if (!newDelay && newDelay !== 0) {
     response.status(400).json({message: 'Erreur, il manque le newDelay'});
@@ -77,22 +78,24 @@ async function update(request, response) {
   }
 
   const {id} = request.params;
+  const card = await Card.findById(id);
 
   const nextQuestionAt = new Date();
   nextQuestionAt.setSeconds(nextQuestionAt.getSeconds() + newDelay);
 
-  await Card.findByIdAndUpdate(
-    id,
-    {
-      currentDelay: newDelay,
-      nextQuestionAt: nextQuestionAt.valueOf()
-    },
-    (error) => {
-      let message = error || "OK";
-      response.json({message})
-    }
-  );
+  const wasLastAnswerSuccessful = newDelay > card.currentDelay;
+  card.currentDelay = newDelay;
+  card.nextQuestionAt = nextQuestionAt.valueOf();
 
+  if (wasLastAnswerSuccessful) {
+    User.findById(card.user, (error, user) => {
+      user.updateExperience(card);
+    });
+  }
+
+
+  await card.save();
+  return response.json(card);
 }
 
 
@@ -171,7 +174,7 @@ async function stats(request, response) {
  * @param request
  * @param response
  */
-module.exports.attach = async function(request, response) {
+module.exports.attach = async function (request, response) {
   const cardsList = await Card.find({}, "_id");
   const {user: connectedUser} = request;
   const user = await User.findById(connectedUser._id);

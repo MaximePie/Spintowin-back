@@ -1,5 +1,10 @@
 const mongoose = require('mongoose');
 
+/**
+ *
+ * wasLastAnswerSuccessful : Boolean
+ * This value is used for mongodb atlas purpose
+ */
 const cardSchema = mongoose.Schema({
   question: {type: String},
   answer: {type: String, required: true},
@@ -12,7 +17,7 @@ const cardSchema = mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
-  }
+  },
 });
 
 const Card = mongoose.model('Card', cardSchema);
