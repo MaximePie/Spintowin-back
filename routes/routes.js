@@ -25,6 +25,8 @@ router.post('/chapters/', chapterController.create);
 router.post('/users/register/', userController.create);
 router.post('/users/login/', userController.login);
 router.get('/users/connectedUser/', verify, userController.connectedUser);
+router.get('/users/connectedUser/scales', verify, userController.scales);
+router.get('/users/connectedUser/progress', verify, userController.progress);
 router.get('/users/logout/', verify, userController.login);
 
 

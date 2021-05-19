@@ -86,12 +86,43 @@ async function login(request, response) {
   }
 }
 
-module.exports.connectedUser = async function(request, response) {
-    const user = await User.findById(request.user._id);
-    return response.json({user});
+module.exports.connectedUser = async function (request, response) {
+  const user = await User.findById(request.user._id);
+  return response.json({user});
 };
 
-module.exports.login = async function(request, response) {
+
+/**
+ * Route : /users/connectedUser/scales
+ * Returns some data about the progression of the user
+ * (How many onGoing, how many with more than 1 minute, questions he has, ... and more
+ * @param request
+ * @param response
+ */
+module.exports.scales = async function (request, response) {
+  const user = await User.findById(request.user._id);
+  const results = await user.calculateMemorizedData();
+  return response.json(results);
+};
+
+
+/**
+ * Route : /users/connectedUser/progress
+ * Returns some data about the progression of the user
+ * How many cards in total
+ * how many already started
+ * how many learned today
+ *
+ * @param request
+ * @param response
+ */
+module.exports.progress = async function (request, response) {
+  const user = await User.findById(request.user._id);
+  const results = await user.calculateProgressData();
+  return response.json(results);
+};
+
+module.exports.login = async function (request, response) {
 
 }
 

@@ -90,6 +90,7 @@ async function update(request, response) {
   if (wasLastAnswerSuccessful) {
     User.findById(card.user, (error, user) => {
       user.updateExperience(card);
+      user.updateProgress(card);
     });
   }
 
@@ -159,12 +160,10 @@ function createCard(question, answer, user, response = undefined, image = undefi
 
 async function stats(request, response) {
   const workInProgressData = await calculateWorkInProgress();
-  const memorizedData = await calculateMemorizedData();
   const score = await calculateTotalScore();
 
   response.json({
     workInProgressData,
-    memorizedData,
     score
   });
 }
@@ -208,24 +207,6 @@ async function calculateTotalScore() {
 
   const [score] = await Card.aggregate([filter, accumulator]);
   return score?.totalAmount || 0;
-}
-
-async function calculateMemorizedData() {
-  const minuteLength = 54;
-  const hourLength = 60 * 60;
-  const dayLength = 24 * hourLength;
-  const weekLength = 7 * dayLength;
-  const monthLength = 30 * dayLength;
-
-  const results = {
-    moreThanOneMinute: await Card.countDocuments({currentDelay: {$gt: minuteLength}}),
-    moreThanOneHour: await Card.countDocuments({currentDelay: {$gt: hourLength}}),
-    moreThanOneDay: await Card.countDocuments({currentDelay: {$gt: dayLength}}),
-    moreThanOneWeek: await Card.countDocuments({currentDelay: {$gt: weekLength}}),
-    moreThanOneMonth: await Card.countDocuments({currentDelay: {$gt: monthLength}}),
-  };
-
-  return results
 }
 
 async function calculateWorkInProgress() {
