@@ -142,10 +142,6 @@ async function getOne(request, response) {
     .limit(1)
     .skip(12);
 
-  console.log("Sending");
-  console.log(cards);
-
-
   response.status(200).json({
     cards,
   })
