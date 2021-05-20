@@ -60,8 +60,6 @@ userCardSchema.methods.updateInterval = (interval) => {
       this.isMinuteLengthCard = true;
       break;
   }
-
-  this.save();
 };
 
 userCardSchema.statics.createUserCard = async function createUserCard(userId, cardId, interval) {

@@ -32,7 +32,9 @@ router.get('/users/logout/', verify, userController.login);
 
 // Verified routes
 // Cards
-router.get('/cards/', verify, cardsController.index);
+router.get('/cards/test', verify, cardsController.test);
+router.get('/cards', verify, cardsController.index);
+router.get('/cards/getOne', verify, cardsController.getOne);
 router.get('/cards/stats', verify, cardsController.stats);
 router.post('/cards/', verify, upload.single('file'), cardsController.create);
 router.post('/cards/:id', verify, cardsController.update);

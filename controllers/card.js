@@ -3,6 +3,31 @@ const User = require('../model/user');
 const {cards} = require('../data/cards');
 const fs = require("fs");
 
+
+async function test(request, response) {
+  const user = request.user;
+
+  const currentDate = new Date();
+  const cards = await Card
+    .find({
+      user: user._id,
+      nextQuestionAt: {
+        $lt: currentDate.valueOf()
+      }
+    })
+    .sort({
+      currentDelay: -1,
+      question: 1,
+    })
+    .limit(1)
+    .skip(12);
+
+
+  response.status(200).json({
+    cards,
+  })
+}
+
 /**
  * Only use for testing purpose !
  * @param request
@@ -88,9 +113,9 @@ async function update(request, response) {
   card.nextQuestionAt = nextQuestionAt.valueOf();
 
   if (wasLastAnswerSuccessful) {
-    User.findById(card.user, (error, user) => {
-      user.updateExperience(card);
-      user.updateProgress(card);
+    User.findById(card.user, async (error, user) => {
+      await user.updateExperience(card);
+      await user.updateProgress(card);
     });
   }
 
@@ -99,6 +124,32 @@ async function update(request, response) {
   return response.json(card);
 }
 
+async function getOne(request, response) {
+  const user = request.user;
+
+  const currentDate = new Date();
+  const cards = await Card
+    .find({
+      user: user._id,
+      nextQuestionAt: {
+        $lt: currentDate.valueOf()
+      }
+    })
+    .sort({
+      currentDelay: -1,
+      nextQuestionAt: -1,
+    })
+    .limit(1)
+    .skip(12);
+
+  console.log("Sending");
+  console.log(cards);
+
+
+  response.status(200).json({
+    cards,
+  })
+}
 
 async function index(request, response) {
   const user = request.user;
@@ -113,10 +164,10 @@ async function index(request, response) {
     })
     .sort({
       currentDelay: -1,
-      question: 1,
+      nextQuestionAt: -1,
     })
     .find()
-    .limit(50);
+    .limit(12);
 
   response.status(200).json({
     cards: cards,
@@ -225,7 +276,9 @@ async function calculateWorkInProgress() {
 }
 
 
+module.exports.test = test;
 module.exports.index = index;
+module.exports.getOne = getOne;
 module.exports.create = create;
 module.exports.update = update;
 module.exports.generate = generate;

@@ -132,7 +132,8 @@ userSchema.methods.updateProgress = async function(card) {
     UserCard.createUserCard(this._id, card._id, interval);
   }
 
-  this.save();
+  await this.save();
+  return;
 };
 
 
