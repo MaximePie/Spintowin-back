@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const {Schema} = mongoose;
 const Card = require('./card');
+const UserCard = require('./userCard');
 const {requiredExpForNextLevel} = require('../data/levels');
 const {intervals} = require('../data/cards');
 
@@ -38,30 +39,6 @@ const userSchema = mongoose.Schema({
   cards: [ // Used for foreign key purpose
     {type: Schema.Types.ObjectId, ref: 'Card'}
   ],
-  startedCards: {
-    type: Number,
-    default: 0,
-  },
-  todayMinuteLengthCard: {
-    type: Number,
-    default: 0,
-  },
-  todayHourLengthCard: {
-    type: Number,
-    default: 0,
-  },
-  todayDayLengthCard: {
-    type: Number,
-    default: 0,
-  },
-  todayWeekLengthCard: {
-    type: Number,
-    default: 0,
-  },
-  todayMonthLengthCard: {
-    type: Number,
-    default: 0,
-  },
 });
 
 // assign a function to the "methods" object of our userSchema
@@ -90,8 +67,64 @@ userSchema.methods.gainLevel = function () {
   this.experienceRequiredForNextLevel = experienceRequired;
 };
 
-userSchema.methods.calculateMemorizedData  = async function () {
+userSchema.methods.calculateProgressData = async function () {
+  const cards = Card.find({user: this._id});
+  const UserCard = Card.find({userId: this._id});
 
+  return {
+    total: await cards.count(),
+    today: await UserCard.count({}),
+    started: await cards.countDocuments({
+      currentDelay: {$gt: 0}
+    }),
+  };
+}
+
+userSchema.methods.updateProgress = async function(card) {
+  // Si la carte est déjà dans la liste, ne pas l'ajouter, mais vider ses champs et ajouter le bon
+  const startedInterval = intervals[0];
+  const minuteInterval = intervals[5];
+  const hourInterval = intervals[13];
+  const dayInterval = intervals[17];
+  const weekInterval = intervals[21];
+  const monthInterval = intervals[24];
+
+  const existingUserCard = await UserCard.findOne({cardId: card._id});
+  let interval = "";
+
+  switch(card.currentDelay) {
+    case monthInterval:
+      interval = "month";
+      break;
+    case weekInterval:
+      interval = "week";
+      break;
+    case dayInterval:
+      interval = "day";
+      break;
+    case hourInterval:
+      interval = "hour";
+      break;
+    case minuteInterval:
+      interval = "minute";
+      break;
+    case startedInterval:
+      interval = "started";
+      break;
+  }
+
+  if (existingUserCard) {
+    existingUserCard.updateInterval(interval);
+  }
+  else {
+    UserCard.createUserCard(this._id, card._id, interval);
+  }
+
+  this.save();
+};
+
+
+userSchema.methods.calculateMemorizedData  = async function () {
   const Cards = Card.find({
     user: this._id,
   });
@@ -101,6 +134,10 @@ userSchema.methods.calculateMemorizedData  = async function () {
   const weekLength = 7 * dayLength;
   const monthLength = 30 * dayLength;
 
+  const UserCards = UserCard.find({
+    userId: this._id
+  });
+
   const results = {
     total: await Cards.count(),
     moreThanOneMinute: await Cards.countDocuments({currentDelay: {$gte: minuteLength}}),
@@ -108,59 +145,18 @@ userSchema.methods.calculateMemorizedData  = async function () {
     moreThanOneDay: await Cards.countDocuments({currentDelay: {$gte: dayLength}}),
     moreThanOneWeek: await Cards.countDocuments({currentDelay: {$gte: weekLength}}),
     moreThanOneMonth: await Cards.countDocuments({currentDelay: {$gte: monthLength}}),
-    startedCards: this.startedCards,
-    todayMinuteLengthCard: this.todayMinuteLengthCard,
-    todayHourLengthCard: this.todayHourLengthCard,
-    todayDayLengthCard: this.todayDayLengthCard,
-    todayWeekLengthCard: this.todayWeekLengthCard,
-    todayMonthLengthCard: this.todayMonthLengthCard,
+    startedCards: await UserCards.count(),
+    todayMinuteLengthCard: await UserCards.count({ isMinuteLengthCard: true}),
+    todayHourLengthCard: await UserCards.count({ isHourLengthCard: true}),
+    todayDayLengthCard: await UserCards.count({ isDayLengthCard: true}),
+    todayWeekLengthCard: await UserCards.count({ isWeekLengthCard: true}),
+    todayMonthLengthCard: await UserCards.count({ isMonthLengthCard: true}),
+    userId: this._id,
   };
 
   return results
-}
-
-userSchema.methods.calculateProgressData = async function () {
-  const userCards = Card.find({user: this._id});
-
-  return {
-    total: await userCards.count(),
-    today: this.startedCards,
-    started: await userCards.countDocuments({
-      currentDelay: {$gt: 0}
-    }),
-  };
-}
-
-userSchema.methods.updateProgress = async function(card) {
-  const startedInterval = intervals[0];
-  const minuteInterval = intervals[5];
-  const hourInterval = intervals[13];
-  const dayInterval = intervals[17];
-  const weekInterval = intervals[21];
-  const monthInterval = intervals[24];
-
-  switch(card.currentDelay) {
-    case monthInterval:
-      this.todayMonthLengthCard++;
-      break;
-    case weekInterval:
-      this.todayWeekLengthCard++;
-      break;
-    case dayInterval:
-      this.todayDayLengthCard++;
-      break;
-    case hourInterval:
-      this.todayHourLengthCard++;
-      break;
-    case minuteInterval:
-      this.todayMinuteLengthCard++;
-      break;
-    case startedInterval:
-      this.startedCards++;
-  }
-
-  this.save();
 };
+
 
 const User = mongoose.model('User', userSchema);
 

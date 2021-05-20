@@ -2,6 +2,7 @@ const {cards, intervals} = require('../data/cards');
 const bcrypt = require('bcryptjs');
 const User = require('../model/user');
 const Card = require('../model/card');
+const UserCard = require('../model/userCard');
 
 
 module.exports.seed = async function (request, response) {
@@ -13,6 +14,7 @@ module.exports.seed = async function (request, response) {
 
   await User.deleteMany({});
   await Card.deleteMany({});
+  await UserCard.deleteMany({});
 
   const hashedPassword = await bcrypt.hashSync('hahahaha', 8);
   const user = {
@@ -21,29 +23,29 @@ module.exports.seed = async function (request, response) {
     password: hashedPassword,
     experience: 0,
     level: 1,
-    startedCards: Math.round(Math.random() * 100),
-    todayMinuteLengthCard: Math.round(Math.random() * 100),
-    todayHourLengthCard: Math.round(Math.random() * 100),
-    todayDayLengthCard: Math.round(Math.random() * 100),
-    todayWeekLengthCard: Math.round(Math.random() * 100),
-    todayMonthLengthCard: Math.round(Math.random() * 100),
   };
+
   await User.create(user);
 
   const createdUser = await User.findOne();
-  const cardLimit = 100;
+  const cardLimit = 50;
   let cardCounter = 0;
   const newDate = new Date();
+
+  const possibleIntervals = ["started", "minute", "hour", "day", "week", "months"];
+
   while (cardCounter < cardLimit) {
 
     const choosenInterval = intervals[Math.floor(Math.random() * 20)];
 
-    await Card.create({
+    const createdCard = await Card.create({
       ...cards[cardCounter],
       currentDelay: choosenInterval,
       user: createdUser._id,
       nextQuestionAt: newDate.valueOf(),
-    })
+    });
+
+    await createdUser.updateProgress(createdCard);
 
     cardCounter ++ ;
   }
@@ -51,5 +53,6 @@ module.exports.seed = async function (request, response) {
   return response.status(200).json({
     user,
     cards: await Card.find(),
-  })
+    userCards: await UserCard.find(),
+  });
 }
