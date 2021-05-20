@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const moment = require('moment');
 const {Schema} = mongoose;
 const Card = require('./card');
 const UserCard = require('./userCard');
@@ -39,6 +40,7 @@ const userSchema = mongoose.Schema({
   cards: [ // Used for foreign key purpose
     {type: Schema.Types.ObjectId, ref: 'Card'}
   ],
+  lastActivity: {type: Date},
 });
 
 // assign a function to the "methods" object of our userSchema
@@ -78,6 +80,16 @@ userSchema.methods.calculateProgressData = async function () {
       currentDelay: {$gt: 0}
     }),
   };
+}
+
+userSchema.methods.checkLastActivity = async function () {
+  const todayDate = moment();
+  const lastDay = moment(this.lastActivity);
+  if(!todayDate.isSame(lastDay, "d")) {
+    this.lastActivity = moment().toDate();
+    this.save();
+    UserCard.deleteMany({userId: this._id});
+  }
 }
 
 userSchema.methods.updateProgress = async function(card) {

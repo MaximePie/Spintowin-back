@@ -88,6 +88,9 @@ async function login(request, response) {
 
 module.exports.connectedUser = async function (request, response) {
   const user = await User.findById(request.user._id);
+  if (user) {
+    await user.checkLastActivity();
+  }
   return response.json({user});
 };
 

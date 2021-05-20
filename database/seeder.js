@@ -32,8 +32,6 @@ module.exports.seed = async function (request, response) {
   let cardCounter = 0;
   const newDate = new Date();
 
-  const possibleIntervals = ["started", "minute", "hour", "day", "week", "months"];
-
   while (cardCounter < cardLimit) {
 
     const choosenInterval = intervals[Math.floor(Math.random() * 20)];
