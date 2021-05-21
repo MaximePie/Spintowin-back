@@ -40,7 +40,6 @@ router.post('/cards/', verify, upload.single('file'), cardsController.create);
 router.post('/cards/:id', verify, cardsController.update);
 // app.delete('/your_route/:id', cardsController.delete);
 router.get('/cards/deleteAll', verify, cardsController.deleteAll);
-router.get('/cards/attachToConnectedUser', verify, cardsController.attach);
 
 router.get('/seed', seeder.seed);
 

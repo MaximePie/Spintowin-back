@@ -17,7 +17,7 @@ async function test(request, response) {
     })
     .sort({
       currentDelay: -1,
-      question: 1,
+      nextQuestionAt: -1,
     })
     .limit(1)
     .skip(12);
@@ -25,6 +25,7 @@ async function test(request, response) {
 
   response.status(200).json({
     cards,
+    allCards: await Card.find({}).sort({currentDelay: -1}).limit(3).sort({question: 1}),
   })
 }
 
@@ -126,24 +127,21 @@ async function update(request, response) {
 
 async function getOne(request, response) {
   const user = request.user;
+  const lastCard = await Card.findById(request.query.lastCardId);
 
-  const currentDate = new Date();
-  const cards = await Card
-    .find({
-      user: user._id,
-      nextQuestionAt: {
-        $lt: currentDate.valueOf()
-      }
-    })
-    .sort({
-      currentDelay: -1,
-      nextQuestionAt: -1,
-    })
-    .limit(1)
-    .skip(12);
+  const card = await Card.findOne({
+    user: user._id,
+    nextQuestionAt: {
+      $lt: lastCard.nextQuestionAt,
+    }
+  })
+  .sort({
+    nextQuestionAt: -1,
+  });
 
   response.status(200).json({
-    cards,
+    card,
+    lastCard,
   })
 }
 
