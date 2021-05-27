@@ -161,7 +161,7 @@ async function index(request, response) {
       nextQuestionAt: -1,
     })
     .find()
-    .limit(12);
+    .limit(30);
 
   response.status(200).json({
     cards: cards,
