@@ -85,14 +85,14 @@ userSchema.methods.calculateProgressData = async function () {
 userSchema.methods.checkLastActivity = async function () {
   const todayDate = moment();
   const lastDay = moment(this.lastActivity);
-  if(!todayDate.isSame(lastDay, "d")) {
+  if (!todayDate.isSame(lastDay, "d")) {
     this.lastActivity = moment().toDate();
     this.save();
     UserCard.deleteMany({userId: this._id});
   }
 }
 
-userSchema.methods.updateProgress = async function(card) {
+userSchema.methods.updateProgress = async function (card) {
   // Si la carte est déjà dans la liste, ne pas l'ajouter, mais vider ses champs et ajouter le bon
   const startedInterval = intervals[0];
   const minuteInterval = intervals[5];
@@ -104,7 +104,7 @@ userSchema.methods.updateProgress = async function(card) {
   const existingUserCard = await UserCard.findOne({cardId: card._id});
   let interval = "";
 
-  switch(card.currentDelay) {
+  switch (card.currentDelay) {
     case monthInterval:
       interval = "month";
       break;
@@ -124,22 +124,22 @@ userSchema.methods.updateProgress = async function(card) {
       interval = "started";
       break;
   }
-
-  if (existingUserCard) {
-    existingUserCard.updateInterval(interval);
-  }
-  else {
-    UserCard.createUserCard(this._id, card._id, interval);
+  if (existingUserCard && interval) {
+    await existingUserCard.updateInterval(interval);
+  } else {
+    await UserCard.createUserCard(this._id, card._id, interval);
   }
 
   await this.save();
-  return;
 };
 
 
-userSchema.methods.calculateMemorizedData  = async function () {
+userSchema.methods.calculateMemorizedData = async function () {
   const Cards = Card.find({
     user: this._id,
+    currentDelay: {
+      $gt: 0,
+    }
   });
   const minuteLength = 54;
   const hourLength = 60 * 60;
@@ -151,6 +151,27 @@ userSchema.methods.calculateMemorizedData  = async function () {
     userId: this._id
   });
 
+  const todayMinuteLengthCard = await UserCard.count({
+    isMinuteLengthCard: true,
+    userId: this._id,
+  });
+  const todayHourLengthCard = await UserCard.count({
+    isHourLengthCard: true,
+    userId: this._id,
+  });
+  const todayDayLengthCard = await UserCard.count({
+    isDayLengthCard: true,
+    userId: this._id,
+  });
+  const todayWeekLengthCard = await UserCard.count({
+    todayWeekLengthCard: true,
+    userId: this._id,
+  });
+  const todayMonthLengthCard = await UserCard.count({
+    todayMonthLengthCard: true,
+    userId: this._id,
+  });
+
   const results = {
     total: await Cards.count(),
     moreThanOneMinute: await Cards.countDocuments({currentDelay: {$gte: minuteLength}}),
@@ -159,11 +180,11 @@ userSchema.methods.calculateMemorizedData  = async function () {
     moreThanOneWeek: await Cards.countDocuments({currentDelay: {$gte: weekLength}}),
     moreThanOneMonth: await Cards.countDocuments({currentDelay: {$gte: monthLength}}),
     startedCards: await UserCards.count(),
-    todayMinuteLengthCard: await UserCards.count({ isMinuteLengthCard: true}),
-    todayHourLengthCard: await UserCards.count({ isHourLengthCard: true}),
-    todayDayLengthCard: await UserCards.count({ isDayLengthCard: true}),
-    todayWeekLengthCard: await UserCards.count({ isWeekLengthCard: true}),
-    todayMonthLengthCard: await UserCards.count({ isMonthLengthCard: true}),
+    todayMinuteLengthCard,
+    todayHourLengthCard,
+    todayDayLengthCard,
+    todayWeekLengthCard,
+    todayMonthLengthCard,
     userId: this._id,
   };
 

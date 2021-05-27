@@ -36,7 +36,7 @@ const userCardSchema = mongoose.Schema({
   },
 });
 
-userCardSchema.methods.updateInterval = (interval) => {
+userCardSchema.methods.updateInterval = async function updateInterval(interval) {
   this.isMinuteLengthCard = false;
   this.isHourLengthCard = false;
   this.isDayLengthCard = false;
@@ -60,6 +60,7 @@ userCardSchema.methods.updateInterval = (interval) => {
       this.isMinuteLengthCard = true;
       break;
   }
+  await this.save();
 };
 
 userCardSchema.statics.createUserCard = async function createUserCard(userId, cardId, interval) {
