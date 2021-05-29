@@ -85,14 +85,16 @@ userSchema.methods.calculateProgressData = async function () {
 userSchema.methods.checkLastActivity = async function () {
   const todayDate = moment();
   const lastDay = moment(this.lastActivity);
-  if (!todayDate.isSame(lastDay, "d")) {
+  if (!this.lastActivity || !todayDate.isSame(lastDay, "d")) {
+    await UserCard.deleteMany({userId: this._id});
     this.lastActivity = moment().toDate();
     this.save();
-    UserCard.deleteMany({userId: this._id});
   }
-}
+};
 
 userSchema.methods.updateProgress = async function (card) {
+  await this.checkLastActivity();
+
   // Si la carte est déjà dans la liste, ne pas l'ajouter, mais vider ses champs et ajouter le bon
   const startedInterval = intervals[0];
   const minuteInterval = intervals[5];
