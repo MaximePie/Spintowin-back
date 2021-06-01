@@ -74,9 +74,9 @@ userSchema.methods.calculateProgressData = async function () {
   const UserCard = Card.find({userId: this._id});
 
   return {
-    total: await cards.count(),
-    today: await UserCard.count({}),
-    started: await cards.countDocuments({
+    total: await Card.count({user: this._id}),
+    today: await UserCard.count({userId: this._id}),
+    started: await Card.count({
       currentDelay: {$gt: 0}
     }),
   };
