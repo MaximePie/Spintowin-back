@@ -70,12 +70,21 @@ userSchema.methods.gainLevel = function () {
 };
 
 userSchema.methods.calculateProgressData = async function () {
-  const cards = Card.find({user: this._id});
-  const UserCard = Card.find({userId: this._id});
+  const userId = this._id;
+  const today = await Card
+    .find({currentDelay: 5, user: userId})
+    .then(async (cards) => {
+      return UserCard.count({
+        userId,
+        cardId: {
+          $in: cards.map(card => card._id)
+        }
+      })
+    });
 
   return {
     total: await Card.count({user: this._id}),
-    today: await UserCard.count({userId: this._id}),
+    today,
     started: await Card.count({
       currentDelay: {$gt: 0}
     }),
