@@ -2,9 +2,10 @@ const mongoose = require('mongoose');
 const moment = require('moment');
 const {Schema} = mongoose;
 const Card = require('./card');
+const UserBadge = require('./userBadge');
 const UserCard = require('./userCard');
 const {requiredExpForNextLevel} = require('../data/levels');
-const {intervals} = require('../data/cards');
+const {startedInterval, minuteInterval, hourInterval, dayInterval, weekInterval, monthInterval} = require('../data/cards');
 
 const userSchema = mongoose.Schema({
   username: {
@@ -42,6 +43,55 @@ const userSchema = mongoose.Schema({
   ],
   lastActivity: {type: Date},
 });
+
+
+userSchema.methods = {
+  checkAchievements: async function () {
+    const descernedBadges = [
+      ...await UserBadge.check(this._id, "addedCards"),
+      ...await UserBadge.check(this._id, "memorizedCardsMoreThanOneDay"),
+      ...await UserBadge.check(this._id, "memorizedCardsMoreThanOneWeek"),
+      ...await UserBadge.check(this._id, "memorizedCardsMoreThanOneMonth"),
+    ];
+
+    return descernedBadges;
+  },
+
+  updateProgress: async function (card) {
+    // Si la carte est déjà dans la liste, ne pas l'ajouter, mais vider ses champs et ajouter le bon
+
+    const existingUserCard = await UserCard.findOne({cardId: card._id});
+    let interval = "";
+
+    switch (card.currentDelay) {
+      case monthInterval:
+        interval = "month";
+        break;
+      case weekInterval:
+        interval = "week";
+        break;
+      case dayInterval:
+        interval = "day";
+        break;
+      case hourInterval:
+        interval = "hour";
+        break;
+      case minuteInterval:
+        interval = "minute";
+        break;
+      case startedInterval:
+        interval = "started";
+        break;
+    }
+    if (existingUserCard && interval) {
+      await existingUserCard.updateInterval(interval);
+    } else {
+      await UserCard.createUserCard(this._id, card._id, interval);
+    }
+
+    await this.save();
+  }
+}
 
 // assign a function to the "methods" object of our userSchema
 userSchema.methods.updateExperience = function (card, callBack = null) {
@@ -99,47 +149,6 @@ userSchema.methods.checkLastActivity = async function () {
     this.lastActivity = moment().toDate();
     this.save();
   }
-};
-
-userSchema.methods.updateProgress = async function (card) {
-  // Si la carte est déjà dans la liste, ne pas l'ajouter, mais vider ses champs et ajouter le bon
-  const startedInterval = intervals[0];
-  const minuteInterval = intervals[5];
-  const hourInterval = intervals[13];
-  const dayInterval = intervals[17];
-  const weekInterval = intervals[21];
-  const monthInterval = intervals[24];
-
-  const existingUserCard = await UserCard.findOne({cardId: card._id});
-  let interval = "";
-
-  switch (card.currentDelay) {
-    case monthInterval:
-      interval = "month";
-      break;
-    case weekInterval:
-      interval = "week";
-      break;
-    case dayInterval:
-      interval = "day";
-      break;
-    case hourInterval:
-      interval = "hour";
-      break;
-    case minuteInterval:
-      interval = "minute";
-      break;
-    case startedInterval:
-      interval = "started";
-      break;
-  }
-  if (existingUserCard && interval) {
-    await existingUserCard.updateInterval(interval);
-  } else {
-    await UserCard.createUserCard(this._id, card._id, interval);
-  }
-
-  await this.save();
 };
 
 
@@ -207,8 +216,12 @@ const userEventEmitter = User.watch();
 
 userEventEmitter.on('change', async change => {
   const _id = change.documentKey._id;
-  const user = await User.findById(_id);
-  await user.checkLastActivity();
+  User.findById(_id).then((user) => {
+    if (user) {
+      user.checkLastActivity();
+      user.checkAchievements();
+    }
+  });
 });
 
 

@@ -1,20 +1,22 @@
 const {cards, intervals} = require('../data/cards');
+const {badges} = require('../data/badges');
 const bcrypt = require('bcryptjs');
 const User = require('../model/user');
 const Card = require('../model/card');
 const UserCard = require('../model/userCard');
+const Badge = require('../model/badge');
 
 
 module.exports.seed = async function (request, response) {
-  if (!process.env.CURRENT_ENVIRONMENT === 'local') {
-    return response.status(401).json({
-      message: "Le seed est réservé aux développeureuses",
-    })
-  }
 
   await User.deleteMany({});
   await Card.deleteMany({});
   await UserCard.deleteMany({});
+  await Badge.deleteMany({});
+
+  await badges.forEach((badge) => {
+    Badge.create(badge);
+  })
 
   const hashedPassword = await bcrypt.hashSync('hahahaha', 8);
   const user = {
@@ -48,9 +50,12 @@ module.exports.seed = async function (request, response) {
     cardCounter ++ ;
   }
 
+
+
   return response.status(200).json({
     user,
     cards: await Card.find(),
     userCards: await UserCard.find(),
+    badges: await Badge.find(),
   });
 }

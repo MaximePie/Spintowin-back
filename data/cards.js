@@ -35,6 +35,14 @@ const intervals = [
   370 * 24 * 60 * 60, //
 ];
 
+module.exports.startedInterval = intervals[0];
+module.exports.minuteInterval = intervals[5];
+module.exports.hourInterval = intervals[13];
+module.exports.dayInterval = intervals[17];
+module.exports.weekInterval = intervals[21];
+module.exports.monthInterval = intervals[24];
+
+
 
 
 /*

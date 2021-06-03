@@ -4,11 +4,13 @@ const lessonsController = require('../controllers/lesson');
 const chapterController = require('../controllers/chapter');
 const cardsController = require('../controllers/card');
 const userController = require('../controllers/user');
+const badgeController = require('../controllers/badge');
 const seeder = require('../database/seeder');
 
 const multer  = require('multer');
 const upload = multer({ dest: './uploads/' });
 const verify = require('../routes/verifyToken');
+const verifyDevelopper = require('../routes/verifyDevelopper');
 
 // Let's put all the routes here.
 // If the amount of routes is too big, create a folder and split the file, one file for each entity should do the work
@@ -41,7 +43,9 @@ router.post('/cards/:id', verify, cardsController.update);
 // app.delete('/your_route/:id', cardsController.delete);
 router.get('/cards/deleteAll', verify, cardsController.deleteAll);
 
-router.get('/seed', seeder.seed);
+// Admin cards
+router.post('/seed', verifyDevelopper, seeder.seed);
+router.post('/badge', verifyDevelopper, badgeController.create);
 
 
 module.exports = router;

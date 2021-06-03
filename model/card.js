@@ -1,10 +1,5 @@
 const mongoose = require('mongoose');
 
-/**
- *
- * wasLastAnswerSuccessful : Boolean
- * This value is used for mongodb atlas purpose
- */
 const cardSchema = mongoose.Schema({
   question: {type: String},
   answer: {type: String, required: true},
