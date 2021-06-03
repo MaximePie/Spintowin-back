@@ -3,6 +3,7 @@ const moment = require('moment');
 const {Schema} = mongoose;
 const Card = require('./card');
 const UserBadge = require('./userBadge');
+const Badge = require('./badge');
 const UserCard = require('./userCard');
 const {requiredExpForNextLevel} = require('../data/levels');
 const {startedInterval, minuteInterval, hourInterval, dayInterval, weekInterval, monthInterval} = require('../data/cards');
@@ -91,7 +92,7 @@ userSchema.methods = {
 
     await this.save();
   }
-}
+};
 
 // assign a function to the "methods" object of our userSchema
 userSchema.methods.updateExperience = function (card, callBack = null) {
@@ -119,6 +120,72 @@ userSchema.methods.gainLevel = function () {
   this.experienceRequiredForNextLevel = experienceRequired;
 };
 
+userSchema.methods.currentProgressForBadge = async (badgeType, userId) => {
+  // L'user se met à jour
+  let currentValue = 0;
+  switch (badgeType) {
+    case "addedCards":
+      currentValue = await Card.countDocuments({user: userId});
+      break;
+    case "memorizedCardsMoreThanOneDay":
+      currentValue = await Card.countDocuments({
+        user: userId,
+        currentDelay: {$gte: dayInterval},
+      });
+      break;
+    case "memorizedCardsMoreThanOneWeek":
+      currentValue = await Card.countDocuments({
+        user: userId,
+        currentDelay: {$gte: weekInterval},
+      });
+      break;
+    case "memorizedCardsMoreThanOneMonth":
+      currentValue = await Card.countDocuments({
+        user: userId,
+        currentDelay: {$gte: monthInterval},
+      });
+      break;
+    default:
+      currentValue = 0;
+      break;
+  }
+  return currentValue;
+};
+
+userSchema.methods.badges = async function badges() {
+  const userId = this._id;
+  const userBadges = await UserBadge.find({userId}).then(async userBadges => {
+    // On renvoie le résultat de la promesse
+    const badges = await Badge.find({_id: {$in: userBadges.map(({badgeId}) => badgeId)}});
+
+    // Calculating top badges in each category
+      const addedCardsBadge = UserBadge.topBadgeFromCategory(badges, "addedCards");
+      const oneDayCardsBadge = UserBadge.topBadgeFromCategory(badges, "memorizedCardsMoreThanOneDay");
+      const oneWeekCardBadge = UserBadge.topBadgeFromCategory(badges, "memorizedCardsMoreThanOneWeek");
+      const oneMonthCardBadge = UserBadge.topBadgeFromCategory(badges, "memorizedCardsMoreThanOneMonth");
+      const filteredBadges = [
+        addedCardsBadge,
+        oneDayCardsBadge,
+        oneWeekCardBadge,
+        oneMonthCardBadge
+      ].filter(badge => badge !== undefined);
+
+    const formatedBadges = Promise.all(filteredBadges.map(async badge => {
+      if (badge) {
+        const current = await this.currentProgressForBadge(badge.requiredField, userId);
+        const requiredForNextBadge = await UserBadge.requiredProgressForNextBadge(badge);
+        return {
+          badge,
+          current,
+          required: requiredForNextBadge.requiredAmount,
+        }
+      }
+    }));
+    return formatedBadges;
+  });
+  return userBadges
+};
+
 userSchema.methods.calculateProgressData = async function () {
   const userId = this._id;
   const today = await Card
@@ -139,7 +206,7 @@ userSchema.methods.calculateProgressData = async function () {
       currentDelay: {$gt: 0}
     }),
   };
-}
+};
 
 userSchema.methods.checkLastActivity = async function () {
   const todayDate = moment();

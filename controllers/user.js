@@ -126,6 +126,12 @@ module.exports.login = async function (request, response) {
 
 }
 
+module.exports.badges = async function (request, response) {
+  const user = await User.findById(request.user);
+  const badges = await user.badges();
+  return response.json(badges)
+};
+
 /**
  * Checks if the second parameter matches the first one
  * @param databasePassword

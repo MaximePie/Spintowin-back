@@ -18,36 +18,21 @@ const userBadgeSchema = mongoose.Schema({
 
 
 userBadgeSchema.statics = {
+
+  topBadgeFromCategory: (badges, badgeType) => {
+    return badges
+      .filter(badge => badge.requiredField === badgeType)
+      .sort((firstBadge, secondBadge) => secondBadge.level - firstBadge.level)[0];
+  },
+
+  requiredProgressForNextBadge: async (badge) => {
+    return Badge.findOne({requiredAmount: {$gt: badge.requiredAmount}}).sort({requiredAmount: 1});
+  },
+
   check: async (userId, badgeType) => {
 
-    // L'user se met à jour
-    let testedValue;
-    switch (badgeType) {
-      case "addedCards":
-        testedValue = await Card.countDocuments({user: userId});
-        break;
-      case "memorizedCardsMoreThanOneDay":
-        testedValue = await Card.countDocuments({
-          user: userId,
-          currentDelay: {$gte: dayInterval},
-        });
-        break;
-      case "memorizedCardsMoreThanOneWeek":
-        testedValue = await Card.countDocuments({
-          user: userId,
-          currentDelay: {$gte: weekInterval},
-        });
-        break;
-      case "memorizedCardsMoreThanOneMonth":
-        testedValue = await Card.countDocuments({
-          user: userId,
-          currentDelay: {$gte: monthInterval},
-        });
-        break;
-      default:
-        testedValue = 0;
-        break;
-    }
+    const user = await User.findById(userId);
+    const testedValue = user.currentProgressForBadge(badgeType);
 
     const availableBadges = await Badge.find({
       requiredField: badgeType,

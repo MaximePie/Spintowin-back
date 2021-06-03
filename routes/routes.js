@@ -26,13 +26,15 @@ router.post('/chapters/', chapterController.create);
 // Users
 router.post('/users/register/', userController.create);
 router.post('/users/login/', userController.login);
+
+// Verified routes
 router.get('/users/connectedUser/', verify, userController.connectedUser);
 router.get('/users/connectedUser/scales', verify, userController.scales);
 router.get('/users/connectedUser/progress', verify, userController.progress);
+router.get('/users/connectedUser/badges', verify, userController.badges);
 router.get('/users/logout/', verify, userController.login);
 
 
-// Verified routes
 // Cards
 router.get('/cards/test', verify, cardsController.test);
 router.get('/cards', verify, cardsController.index);
