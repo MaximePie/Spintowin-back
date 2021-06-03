@@ -102,8 +102,6 @@ userSchema.methods.checkLastActivity = async function () {
 };
 
 userSchema.methods.updateProgress = async function (card) {
-  await this.checkLastActivity();
-
   // Si la carte est déjà dans la liste, ne pas l'ajouter, mais vider ses champs et ajouter le bon
   const startedInterval = intervals[0];
   const minuteInterval = intervals[5];
@@ -204,5 +202,14 @@ userSchema.methods.calculateMemorizedData = async function () {
 
 
 const User = mongoose.model('User', userSchema);
+
+const userEventEmitter = User.watch();
+
+userEventEmitter.on('change', async change => {
+  const _id = change.documentKey._id;
+  const user = await User.findById(_id);
+  await user.checkLastActivity();
+});
+
 
 module.exports = User;
