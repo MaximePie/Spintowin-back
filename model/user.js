@@ -48,12 +48,72 @@ const userSchema = mongoose.Schema({
 
 userSchema.methods = {
   checkAchievements: async function () {
+    console.log("Checking Achievements");
+
+    const check =  async (badgeType) => {
+      console.log("Entrée dans check for " + badgeType);
+      const userId = this._id;
+      const testedValue = await this.currentProgressForBadge(badgeType, userId);
+      console.log("Tested Value");
+      console.log(testedValue);
+      const availableBadges = await Badge.find({
+        requiredField: badgeType,
+        requiredAmount: {
+          $lte: testedValue,
+        }
+      });
+      console.log("Available Badges");
+      console.log(availableBadges)
+
+      const availableBadgesIds = availableBadges.map(badge => badge._id);
+      const descernedBadgesForUser = await UserBadge.count({userId, badgeId: {$in: availableBadges}});
+
+      if (descernedBadgesForUser !== availableBadgesIds.length) {
+        const undescernedBadgesForUser = await Badge
+          .find({
+            requiredField: badgeType,
+            requiredAmount: {
+              $lte: testedValue,
+            }
+          })
+          .then(async badges => {
+            const undescerned = [];
+            for (const badge of badges) {
+              const {_id: badgeId} = badge;
+              const isDescerned = await UserBadge.findOne({userId, badgeId});
+              if (!isDescerned) {
+                undescerned.push(badge);
+              }
+            }
+            return undescerned;
+          });
+
+        console.log("Undescerned");
+        console.log(undescernedBadgesForUser);
+        undescernedBadgesForUser.forEach(badge => {
+          console.log("Création du badge");
+          console.log(badge);
+          UserBadge.create({
+            userId,
+            badgeId: badge._id,
+          })
+        });
+        return undescernedBadgesForUser;
+      }
+      else {
+        return [];
+      }
+    }
+
     const descernedBadges = [
-      ...await UserBadge.check(this._id, "addedCards"),
-      ...await UserBadge.check(this._id, "memorizedCardsMoreThanOneDay"),
-      ...await UserBadge.check(this._id, "memorizedCardsMoreThanOneWeek"),
-      ...await UserBadge.check(this._id, "memorizedCardsMoreThanOneMonth"),
+      ...await check("addedCards"),
+      ...await check("memorizedCardsMoreThanOneDay"),
+      ...await check("memorizedCardsMoreThanOneWeek"),
+      ...await check("memorizedCardsMoreThanOneMonth"),
     ];
+
+    console.log("Descerned badges");
+    console.log(descernedBadges);
 
     return descernedBadges;
   },
@@ -279,17 +339,18 @@ userSchema.methods.calculateMemorizedData = async function () {
 
 const User = mongoose.model('User', userSchema);
 
+
 const userEventEmitter = User.watch();
 
 userEventEmitter.on('change', async change => {
+  console.log("User changed !");
   const _id = change.documentKey._id;
   User.findById(_id).then((user) => {
+    console.log(user);
     if (user) {
       user.checkLastActivity();
       user.checkAchievements();
     }
   });
 });
-
-
 module.exports = User;

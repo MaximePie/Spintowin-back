@@ -1,9 +1,17 @@
 const Badge = require('../model/badge');
+const {badges} = require('../data/badges');
 
 
 async function create(request, response) {
   const user = request.user;
-  let badge = {};
+  await badges.forEach((badge) => {
+    Badge.create(badge);
+  })
+  response.json({
+    badge: await Badge.find({}),
+  })
+
+/*  let badge = {};
 
   if (request.body) {
     const {
@@ -30,7 +38,7 @@ async function create(request, response) {
   response.status(200).json({
     user,
     badge,
-  })
+  })*/
 }
 
 module.exports.create = create;
