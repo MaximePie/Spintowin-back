@@ -48,22 +48,16 @@ const userSchema = mongoose.Schema({
 
 userSchema.methods = {
   checkAchievements: async function () {
-    console.log("Checking Achievements");
 
     const check =  async (badgeType) => {
-      console.log("Entrée dans check for " + badgeType);
       const userId = this._id;
       const testedValue = await this.currentProgressForBadge(badgeType, userId);
-      console.log("Tested Value");
-      console.log(testedValue);
       const availableBadges = await Badge.find({
         requiredField: badgeType,
         requiredAmount: {
           $lte: testedValue,
         }
       });
-      console.log("Available Badges");
-      console.log(availableBadges)
 
       const availableBadgesIds = availableBadges.map(badge => badge._id);
       const descernedBadgesForUser = await UserBadge.count({userId, badgeId: {$in: availableBadges}});
@@ -88,11 +82,7 @@ userSchema.methods = {
             return undescerned;
           });
 
-        console.log("Undescerned");
-        console.log(undescernedBadgesForUser);
         undescernedBadgesForUser.forEach(badge => {
-          console.log("Création du badge");
-          console.log(badge);
           UserBadge.create({
             userId,
             badgeId: badge._id,
@@ -111,10 +101,6 @@ userSchema.methods = {
       ...await check("memorizedCardsMoreThanOneWeek"),
       ...await check("memorizedCardsMoreThanOneMonth"),
     ];
-
-    console.log("Descerned badges");
-    console.log(descernedBadges);
-
     return descernedBadges;
   },
 

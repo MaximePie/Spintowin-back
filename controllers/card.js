@@ -5,29 +5,15 @@ const fs = require("fs");
 
 
 async function test(request, response) {
-  const user = request.user;
-
-  const currentDate = new Date();
-  const cards = await Card
-    .find({
-      user: user._id,
-      nextQuestionAt: {
-        $lt: currentDate.valueOf()
-      }
-    })
-    .sort({
-      currentDelay: -1,
-      nextQuestionAt: -1,
-    })
-    .limit(1)
-    .skip(12);
-
-
-  response.status(200).json({
-    cards,
-    allCards: await Card.find({}).sort({currentDelay: -1}).limit(3).sort({question: 1}),
-  })
+  const cards = await Card.find({}).sort({question: 1});
+  response.status(200).json(cards)
 }
+
+module.exports.delete = async function test(request, response) {
+  const deletedCard = await Card.deleteOne({_id: request.params.id});
+  response.status(200).json(deletedCard)
+}
+
 
 /**
  * Only use for testing purpose !
@@ -165,6 +151,12 @@ async function index(request, response) {
 
   response.status(200).json({
     cards: cards,
+    remainingCards: await Card.count({
+      user: user._id,
+      nextQuestionAt: {
+        $lt: currentDate.valueOf()
+      }
+    })
   })
 }
 
