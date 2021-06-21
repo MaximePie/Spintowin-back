@@ -4,6 +4,7 @@ const cardSchema = mongoose.Schema({
   question: {type: String},
   answer: {type: String, required: true},
   currentDelay: {type: Number, default: 0},
+  currentSuccessfulAnswerStreak: {type: Number, default: 0},
   nextQuestionAt: {type: Date},
   image: {
     data: Buffer,

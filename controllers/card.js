@@ -100,10 +100,14 @@ async function update(request, response) {
   card.nextQuestionAt = nextQuestionAt.valueOf();
 
   if (wasLastAnswerSuccessful) {
+    card.currentSuccessfulAnswerStreak ++;
     User.findById(card.user, async (error, user) => {
       await user.updateExperience(card);
       await user.updateProgress(card);
     });
+  }
+  else {
+    card.currentSuccessfulAnswerStreak = 0;
   }
 
 
