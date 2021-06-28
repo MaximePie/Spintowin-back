@@ -18,10 +18,15 @@ const validationSchema = Joi.object({
  * @param response
  */
 async function create(request, response) {
-  const {username, email, password} = request.body;
+  const {username, email, password, hasAdsEnabled} = request.body;
+  const userCredentials = {
+    username,
+    email,
+    password,
+  }
 
   // Validation
-  const validation = validationSchema.validate(request.body);
+  const validation = validationSchema.validate(userCredentials);
   if (validation.error) {
     return response.json({
       error: validation.error.details
@@ -39,8 +44,8 @@ async function create(request, response) {
     username,
     email,
     password: hashedPassword,
+    hasAdsEnabled,
   });
-
   try {
     user.save().then((user) => {
       const token = jwt.sign({

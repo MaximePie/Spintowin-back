@@ -21,6 +21,11 @@ const userSchema = mongoose.Schema({
     min: 6,
     max: 255,
   },
+  hasAdsEnabled: {
+    type: Boolean,
+    default: false,
+    required: false,
+  },
   password: {
     type: String,
     required: true,
