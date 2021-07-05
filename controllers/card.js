@@ -5,16 +5,29 @@ const {cards} = require('../data/cards');
 const {displayedCardsLimit} =  require("../data/config");
 const fs = require("fs");
 
-
-async function test(request, response) {
-  const cards = await Card.find({}).sort({question: 1});
-  response.status(200).json(cards)
-}
-
-module.exports.delete = async function test(request, response) {
+module.exports.delete = async function deleteCard(request, response) {
   const deletedCard = await Card.deleteOne({_id: request.params.id});
   response.status(200).json(deletedCard)
-}
+};
+
+module.exports.edit = async function editCard(request, response) {
+  const {id} = request.params;
+  const {question, answer } = request.body;
+  const card = await Card.findById(id);
+
+  if (question) {
+    card.question = question;
+  }
+
+  if (answer) {
+    card.answer = answer;
+  }
+
+  if (answer || question) {
+    await card.save();
+  }
+  response.status(200).json(card)
+};
 
 
 /**
@@ -211,32 +224,6 @@ async function stats(request, response) {
   });
 }
 
-/**
- * TODO - OMG DELETE THIS, BIG DANGER !
- * @param request
- * @param response
- */
-module.exports.attach = async function (request, response) {
-  const cardsList = await Card.find({}, "_id");
-  const {user: connectedUser} = request;
-  const user = await User.findById(connectedUser._id);
-  await Card.updateMany({}, {
-    user: connectedUser._id,
-  });
-  const ids = cardsList.map((card) => {
-    return card._id
-  });
-  const userCards = user?.cards || [];
-  user.cards = [...userCards, ...ids];
-  user.save();
-
-  return response.json({
-    message: "Prêt à tout changer. Aïe aïe aïe",
-    ids,
-    cardsList
-  })
-}
-
 async function calculateTotalScore() {
   const filter = {$match: {currentDelay: {$gt: 0}}};
   const accumulator = {
@@ -268,7 +255,6 @@ async function calculateWorkInProgress() {
 }
 
 
-module.exports.test = test;
 module.exports.index = index;
 module.exports.getOne = getOne;
 module.exports.create = create;

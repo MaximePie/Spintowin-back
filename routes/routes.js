@@ -36,12 +36,12 @@ router.get('/users/logout/', verify, userController.login);
 
 
 // Cards
-router.get('/cards/all', verify, cardsController.test);
 router.get('/cards', verify, cardsController.index);
 router.get('/cards/getOne', verify, cardsController.getOne);
 router.get('/cards/stats', verify, cardsController.stats);
 router.post('/cards/', verify, upload.single('file'), cardsController.create);
 router.post('/cards/:id', verify, cardsController.update);
+router.post('/cards/edit/:id', verify, cardsController.edit);
 router.get('/cards/delete/:id', cardsController.delete);
 router.get('/cards/deleteAll', verify, cardsController.deleteAll);
 
