@@ -5,7 +5,7 @@ const Card = require('./card');
 const UserBadge = require('./userBadge');
 const Badge = require('./badge');
 const UserCard = require('./userCard');
-const {requiredExpForNextLevel} = require('../data/levels');
+const {requiredExpForNextLevel} = require('../data/config');
 const {startedInterval, minuteInterval, hourInterval, dayInterval, weekInterval, monthInterval} = require('../data/cards');
 
 const userSchema = mongoose.Schema({

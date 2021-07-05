@@ -1,6 +1,8 @@
+
 const Card = require('../model/card');
 const User = require('../model/user');
 const {cards} = require('../data/cards');
+const {displayedCardsLimit} =  require("../data/config");
 const fs = require("fs");
 
 
@@ -151,7 +153,7 @@ async function index(request, response) {
       nextQuestionAt: -1,
     })
     .find()
-    .limit(30);
+    .limit(displayedCardsLimit);
 
   response.status(200).json({
     cards: cards,
