@@ -3,7 +3,7 @@ const {badges} = require('../data/badges');
 const bcrypt = require('bcryptjs');
 const User = require('../model/user');
 const Card = require('../model/card');
-const UserCard = require('../model/userCard');
+const UserCardStat = require('../model/userCardStat');
 const Badge = require('../model/badge');
 
 
@@ -11,7 +11,7 @@ module.exports.seed = async function (request, response) {
 
   await User.deleteMany({});
   await Card.deleteMany({});
-  await UserCard.deleteMany({});
+  await UserCardStat.deleteMany({});
   await Badge.deleteMany({});
 
   await badges.forEach((badge) => {
@@ -55,7 +55,7 @@ module.exports.seed = async function (request, response) {
   return response.status(200).json({
     user,
     cards: await Card.find(),
-    userCards: await UserCard.find(),
+    userCards: await UserCardStat.find(),
     badges: await Badge.find(),
   });
 }

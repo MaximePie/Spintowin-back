@@ -4,7 +4,7 @@ const {Schema} = mongoose;
 const Card = require('./card');
 const UserBadge = require('./userBadge');
 const Badge = require('./badge');
-const UserCard = require('./userCard');
+const UserCardStat = require('./userCardStat');
 const {requiredExpForNextLevel} = require('../data/config');
 const {startedInterval, minuteInterval, hourInterval, dayInterval, weekInterval, monthInterval} = require('../data/cards');
 
@@ -109,13 +109,13 @@ userSchema.methods = {
     return descernedBadges;
   },
 
-  updateProgress: async function (card) {
+  updateProgress: async function (userCard) {
     // Si la carte est déjà dans la liste, ne pas l'ajouter, mais vider ses champs et ajouter le bon
 
-    const existingUserCard = await UserCard.findOne({cardId: card._id});
+    const existingUserCard = await UserCardStat.findOne({cardId: userCard.cardId});
     let interval = "";
 
-    switch (card.currentDelay) {
+    switch (userCard.currentDelay) {
       case monthInterval:
         interval = "month";
         break;
@@ -138,7 +138,7 @@ userSchema.methods = {
     if (existingUserCard && interval) {
       await existingUserCard.updateInterval(interval);
     } else {
-      await UserCard.createUserCard(this._id, card._id, interval);
+      await UserCardStat.createUserCardStat(this._id, userCard.cardId, interval);
     }
 
     await this.save();
@@ -242,7 +242,7 @@ userSchema.methods.calculateProgressData = async function () {
   const today = await Card
     .find({currentDelay: 5, user: userId})
     .then(async (cards) => {
-      return UserCard.count({
+      return UserCardStat.count({
         userId,
         cardId: {
           $in: cards.map(card => card._id)
@@ -263,7 +263,7 @@ userSchema.methods.checkLastActivity = async function () {
   const todayDate = moment();
   const lastDay = moment(this.lastActivity);
   if (!this.lastActivity || !todayDate.isSame(lastDay, "d")) {
-    await UserCard.deleteMany({userId: this._id});
+    await UserCardStat.deleteMany({userId: this._id});
     this.lastActivity = moment().toDate();
     this.save();
   }
@@ -283,27 +283,27 @@ userSchema.methods.calculateMemorizedData = async function () {
   const weekLength = 7 * dayLength;
   const monthLength = 30 * dayLength;
 
-  const UserCards = UserCard.find({
+  const UserCards = UserCardStat.find({
     userId: this._id
   });
 
-  const todayMinuteLengthCard = await UserCard.count({
+  const todayMinuteLengthCard = await UserCardStat.count({
     isMinuteLengthCard: true,
     userId: this._id,
   });
-  const todayHourLengthCard = await UserCard.count({
+  const todayHourLengthCard = await UserCardStat.count({
     isHourLengthCard: true,
     userId: this._id,
   });
-  const todayDayLengthCard = await UserCard.count({
+  const todayDayLengthCard = await UserCardStat.count({
     isDayLengthCard: true,
     userId: this._id,
   });
-  const todayWeekLengthCard = await UserCard.count({
+  const todayWeekLengthCard = await UserCardStat.count({
     todayWeekLengthCard: true,
     userId: this._id,
   });
-  const todayMonthLengthCard = await UserCard.count({
+  const todayMonthLengthCard = await UserCardStat.count({
     todayMonthLengthCard: true,
     userId: this._id,
   });
@@ -315,7 +315,7 @@ userSchema.methods.calculateMemorizedData = async function () {
     moreThanOneDay: await Cards.countDocuments({currentDelay: {$gte: dayLength}}),
     moreThanOneWeek: await Cards.countDocuments({currentDelay: {$gte: weekLength}}),
     moreThanOneMonth: await Cards.countDocuments({currentDelay: {$gte: monthLength}}),
-    startedCards: await UserCards.count(),
+    startedCards: await UserCardStat.count(),
     todayMinuteLengthCard,
     todayHourLengthCard,
     todayDayLengthCard,

@@ -1,13 +1,14 @@
 
 const Card = require('../model/card');
+const UserCard = require('../model/userCard');
 const User = require('../model/user');
 const {cards} = require('../data/cards');
-const {displayedCardsLimit} =  require("../data/config");
 const fs = require("fs");
 
 module.exports.delete = async function deleteCard(request, response) {
   const deletedCard = await Card.deleteOne({_id: request.params.id});
-  response.status(200).json(deletedCard)
+  await UserCard.deleteOne({cardId: request.params.id});
+  await response.status(200).json(deletedCard)
 };
 
 module.exports.edit = async function editCard(request, response) {
@@ -96,40 +97,6 @@ function create(request, response) {
   }
 }
 
-async function update(request, response) {
-
-  const {newDelay} = request.body;
-  if (!newDelay && newDelay !== 0) {
-    response.status(400).json({message: 'Erreur, il manque le newDelay'});
-    return;
-  }
-
-  const {id} = request.params;
-  const card = await Card.findById(id);
-
-  const nextQuestionAt = new Date();
-  nextQuestionAt.setSeconds(nextQuestionAt.getSeconds() + newDelay);
-
-  const wasLastAnswerSuccessful = newDelay > card.currentDelay;
-  card.currentDelay = newDelay;
-  card.nextQuestionAt = nextQuestionAt.valueOf();
-
-  if (wasLastAnswerSuccessful) {
-    card.currentSuccessfulAnswerStreak ++;
-    User.findById(card.user, async (error, user) => {
-      await user.updateExperience(card);
-      await user.updateProgress(card);
-    });
-  }
-  else {
-    card.currentSuccessfulAnswerStreak = 0;
-  }
-
-
-  await card.save();
-  return response.json(card);
-}
-
 async function getOne(request, response) {
   const user = request.user;
   const lastCard = await Card.findById(request.query.lastCardId);
@@ -150,35 +117,6 @@ async function getOne(request, response) {
   })
 }
 
-async function index(request, response) {
-  const user = request.user;
-  const currentDate = new Date();
-
-  const cards = await Card
-    .find({
-      user: user._id,
-      nextQuestionAt: {
-        $lt: currentDate.valueOf()
-      }
-    })
-    .sort({
-      currentDelay: -1,
-      nextQuestionAt: -1,
-    })
-    .find()
-    .limit(displayedCardsLimit);
-
-  response.status(200).json({
-    cards: cards,
-    remainingCards: await Card.count({
-      user: user._id,
-      nextQuestionAt: {
-        $lt: currentDate.valueOf()
-      }
-    })
-  })
-}
-
 /**
  * Creates a card with the given parameters
  * @param question
@@ -193,8 +131,6 @@ function createCard(question, answer, user, response = undefined, image = undefi
   Card.create({
     question,
     answer,
-    delay: 0,
-    nextQuestionAt: newDate.valueOf(),
     image: image || null,
     user: user._id,
   }, async (error, data) => {
@@ -203,6 +139,13 @@ function createCard(question, answer, user, response = undefined, image = undefi
       user.cards.push(data._id);
       user.save();
     });
+    UserCard.create({
+      userId: user._id,
+      cardId: data._id,
+      delay: 0,
+      nextQuestionAt: newDate.valueOf(),
+    });
+
     if (response) {
       response.status(200).json({
         message: 'La card a bien été créée ! Woohoo !',
@@ -255,10 +198,8 @@ async function calculateWorkInProgress() {
 }
 
 
-module.exports.index = index;
 module.exports.getOne = getOne;
 module.exports.create = create;
-module.exports.update = update;
 module.exports.generate = generate;
 module.exports.deleteAll = deleteAll;
 module.exports.stats = stats;

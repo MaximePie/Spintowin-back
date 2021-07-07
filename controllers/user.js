@@ -1,4 +1,5 @@
 const User = require('../model/user');
+const Card = require('../model/card');
 const bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
 
@@ -96,6 +97,16 @@ module.exports.connectedUser = async function (request, response) {
   return response.json({user});
 };
 
+/**
+ * Route : /users/
+ * @param request
+ * @param response
+ * @returns A complete list of the users of the app
+ */
+module.exports.index = async function (request, response) {
+  const users = await User.find({});
+  await response.json({users})
+}
 
 /**
  * Route : /users/connectedUser/scales
@@ -123,8 +134,11 @@ module.exports.scales = async function (request, response) {
  */
 module.exports.progress = async function (request, response) {
   const user = await User.findById(request.user._id);
-  const results = await user.calculateProgressData();
-  return response.json(results);
+  if (user) {
+    const results = await user.calculateProgressData();
+    return response.json(results);
+  }
+  return null;
 };
 
 module.exports.login = async function (request, response) {
