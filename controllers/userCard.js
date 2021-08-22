@@ -4,6 +4,25 @@ const User = require('../model/user');
 const {displayedCardsLimit} =  require("../data/config");
 
 /**
+ * Route : "/userCards/resorb/:userCardId"
+ * Remove the userCard receveived as a parameter from the userCards collection
+ * @param request
+ * @param response
+ * @returns The name of the deleted Card
+ */
+module.exports.resorb = async function resorb(request, response) {
+  const {userCardId} = request.params;
+  const deletedCard = await UserCard.findById(userCardId);
+  console.log(userCardId);
+
+  await UserCard.deleteOne({
+    _id: userCardId
+  });
+
+  response.status(200).json(deletedCard);
+};
+
+/**
  * Route : "/userCards/absorb/:_id"
  * Absorbs the card received as a parameter and adds it to the current user cards collection
  * @param request
@@ -20,7 +39,7 @@ module.exports.absorb = async function absorb(request, response) {
     cardId,
     delay: 0,
     nextQuestionAt: newDate.valueOf(),
-  })
+  });
 
   await response.status(201).json({
     user,
@@ -30,7 +49,6 @@ module.exports.absorb = async function absorb(request, response) {
 };
 
 module.exports.train = async function train(request, response) {
-  console.time("train");
   const user = request.user;
   const currentDate = new Date();
 
@@ -59,11 +77,10 @@ module.exports.train = async function train(request, response) {
       answer: card.answer,
       question: card.question || null,
       image: !!card.image.data ? card.image : null,
-    }
+    };
     return createdCard
   }));
 
-  console.timeEnd("train");
   response.status(200).json({
     cards: await cards,
     remainingCards: await UserCard.count({
@@ -73,7 +90,7 @@ module.exports.train = async function train(request, response) {
       }
     })
   })
-}
+};
 
 
 /**
@@ -114,7 +131,7 @@ module.exports.update = async function update(request, response) {
 
   await card.save();
   return response.json(card);
-}
+};
 
 
 /**
@@ -143,14 +160,14 @@ module.exports.list = async function list(request, response) {
   console.log(formatedCards);
 
   await response.json({cards: formatedCards,})
-}
+};
 
 module.exports.transfert = async function transfert(request, response) {
   await UserCard.deleteMany({});
   let createdCards = 0;
   const userCardsToBeTransfered = await Card.find({
     user: request.params._id,
-  })
+  });
 
   userCardsToBeTransfered.map(async (card) => {
     const createdCard = await UserCard.create({
@@ -159,8 +176,8 @@ module.exports.transfert = async function transfert(request, response) {
       currentDelay: card.currentDelay,
       currentSuccessfulAnswerStreak: card.currentSuccessfulAnswerStreak,
       nextQuestionAt: card.nextQuestionAt,
-    })
+    });
     createdCards ++;
-  })
+  });
   await response.json({userCardsToBeTransfered});
-}
+};
