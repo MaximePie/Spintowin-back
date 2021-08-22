@@ -178,7 +178,7 @@ module.exports.list = async function list(request, response) {
     .select('cardId -_id');
   const cardIds = userCards.map(card => card.cardId);
   const cards = await Card.find({ '_id': { $in: cardIds } })
-    .sort({image: -1})
+    .sort({answer: 1})
 
   const connectedUserId = request.user._id;
   const connectedUserCards = await UserCard.find({userId: connectedUserId}, {"cardId": 1, "_id": 0})
