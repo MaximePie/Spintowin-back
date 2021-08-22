@@ -22,8 +22,46 @@ module.exports.resorb = async function resorb(request, response) {
 };
 
 /**
- * Route : "/userCards/absorb/:_id"
+ * Absorb all the cards received in the body
+ * @param request
+ * @param response
+ * @returns {Promise<void>}
+ */
+module.exports.absorbMany = async function absorbMany(request, response) {
+  const user = request.user;
+  const userId = user._id;
+  const {cardsIds} = request.body;
+  const newUserCards = [];
+  cardsIds.map(async(cardId) => {
+    newUserCards.push(await absorbCard(cardId, userId));
+  })
+
+  return response.json({
+    cardsIds,
+    user: userId,
+    newUserCards
+  });
+}
+
+/**
  * Absorbs the card received as a parameter and adds it to the current user cards collection
+ * @param cardId
+ */
+async function absorbCard(cardId, userId) {
+  const newDate = new Date();
+
+  const createdUserCard = await UserCard.create({
+    userId,
+    cardId,
+    delay: 0,
+    nextQuestionAt: newDate.valueOf(),
+  });
+
+}
+
+/**
+ * Route : "/userCards/absorb/:_id"
+ * Absorbs one card represented by the received _id as a parameter
  * @param request
  * @param response
  * @returns the created userCard
@@ -31,17 +69,11 @@ module.exports.resorb = async function resorb(request, response) {
 module.exports.absorb = async function absorb(request, response) {
   const user = request.user;
   const cardId = request.params.id;
-  const newDate = new Date();
-
-  const createdUserCard = await UserCard.create({
-    userId: user._id,
-    cardId,
-    delay: 0,
-    nextQuestionAt: newDate.valueOf(),
-  });
+  const userId = user._id;
+  const createdUserCard = await absorbCard(cardId, userId);
 
   await response.status(201).json({
-    user,
+    userId,
     cardId,
     createdUserCard
   });
@@ -146,8 +178,7 @@ module.exports.list = async function list(request, response) {
     .select('cardId -_id');
   const cardIds = userCards.map(card => card.cardId);
   const cards = await Card.find({ '_id': { $in: cardIds } })
-    .limit(300)
-    .sort({image: -1});
+    .sort({image: -1})
 
   const connectedUserId = request.user._id;
   const connectedUserCards = await UserCard.find({userId: connectedUserId}, {"cardId": 1, "_id": 0})

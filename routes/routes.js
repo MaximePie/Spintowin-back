@@ -51,6 +51,7 @@ router.get('/userCards/absorb/:id', verify, userCardsController.absorb);
 router.get('/userCards/resorb/:userCardId', verify, userCardsController.resorb);
 router.get('/userCards/list/:_id', verify, userCardsController.list);
 router.get('/userCards/transfert/:_id', verifyDevelopper, userCardsController.transfert);
+router.post('/userCards/absorbMany', verify, userCardsController.absorbMany);
 router.post('/userCards/update/:id', verify, userCardsController.update);
 
 
