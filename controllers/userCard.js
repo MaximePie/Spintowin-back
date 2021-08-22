@@ -13,7 +13,6 @@ const {displayedCardsLimit} =  require("../data/config");
 module.exports.resorb = async function resorb(request, response) {
   const {userCardId} = request.params;
   const deletedCard = await UserCard.findById(userCardId);
-  console.log(userCardId);
 
   await UserCard.deleteOne({
     _id: userCardId
@@ -143,12 +142,15 @@ module.exports.update = async function update(request, response) {
  */
 module.exports.list = async function list(request, response) {
 
-  const userCards = await UserCard.find({userId: request.params._id}).select('cardId -_id');
+  const userCards = await UserCard.find({userId: request.params._id})
+    .select('cardId -_id');
   const cardIds = userCards.map(card => card.cardId);
-  const cards = await Card.find({ '_id': { $in: cardIds } });
+  const cards = await Card.find({ '_id': { $in: cardIds } })
+    .limit(300)
+    .sort({image: -1});
 
   const connectedUserId = request.user._id;
-  const connectedUserCards = await UserCard.find({userId: connectedUserId}, {"cardId": 1, "_id": 0});
+  const connectedUserCards = await UserCard.find({userId: connectedUserId}, {"cardId": 1, "_id": 0})
   const connectedUserCardsIds = connectedUserCards.map(connectedUserCard => connectedUserCard.cardId.toString());
   const formatedCards = cards.map(card => {
       return {
@@ -157,7 +159,6 @@ module.exports.list = async function list(request, response) {
       }
     }
   );
-  console.log(formatedCards);
 
   await response.json({cards: formatedCards,})
 };
