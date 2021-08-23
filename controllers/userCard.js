@@ -89,6 +89,9 @@ module.exports.train = async function train(request, response) {
       nextQuestionAt: {
         $lt: currentDate.valueOf()
       },
+      isMemorized: {
+        $ne: true,
+      }
     },
     )
     .sort({

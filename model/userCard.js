@@ -16,6 +16,7 @@ const userCardSchema = mongoose.Schema({
   currentDelay: {type: Number, default: 0},
   currentSuccessfulAnswerStreak: {type: Number, default: 0},
   nextQuestionAt: {type: Date},
+  isMemorized: {type: Boolean, default: false},
 });
 
 const UserCard = mongoose.model('userCard', userCardSchema);

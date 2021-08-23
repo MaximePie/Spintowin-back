@@ -334,10 +334,8 @@ const User = mongoose.model('User', userSchema);
 const userEventEmitter = User.watch();
 
 userEventEmitter.on('change', async change => {
-  console.log("User changed !");
   const _id = change.documentKey._id;
   User.findById(_id).then((user) => {
-    console.log(user);
     if (user) {
       user.checkLastActivity();
       user.checkAchievements();
