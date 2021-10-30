@@ -94,7 +94,7 @@ async function login(request, response) {
 
 module.exports.connectedUser = async function (request, response) {
   const user = await User.findById(request.user._id);
-  return response.json({user});
+  return response.json(user);
 };
 
 /**
@@ -140,10 +140,6 @@ module.exports.progress = async function (request, response) {
   }
   return null;
 };
-
-module.exports.login = async function (request, response) {
-
-}
 
 module.exports.badges = async function (request, response) {
   const user = await User.findById(request.user);
