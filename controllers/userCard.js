@@ -121,7 +121,8 @@ module.exports.train = async function train(request, response) {
       userId: user._id,
       nextQuestionAt: {
         $lt: currentDate.valueOf()
-      }
+      },
+      isMemorized: false,
     })
   })
 };
@@ -136,7 +137,7 @@ module.exports.train = async function train(request, response) {
  */
 module.exports.update = async function update(request, response) {
 
-  const {newDelay} = request.body;
+  const {newDelay, isMemorized} = request.body;
   if (!newDelay && newDelay !== 0) {
     response.status(400).json({message: 'Erreur, il manque le newDelay'});
     return;
@@ -161,6 +162,10 @@ module.exports.update = async function update(request, response) {
   }
   else {
     card.currentSuccessfulAnswerStreak = 0;
+  }
+
+  if (isMemorized) {
+    card.isMemorized = true;
   }
 
   await card.save();
