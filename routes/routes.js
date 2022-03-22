@@ -46,6 +46,7 @@ router.get('/cards/delete/:id', cardsController.delete);
 router.get('/cards/deleteAll', verify, cardsController.deleteAll);
 
 // UserCards
+router.get('/userCards/getOne', verify, userCardsController.reviewOne);
 router.get('/userCards', verify, userCardsController.train);
 router.get('/userCards/absorb/:id', verify, userCardsController.absorb);
 router.get('/userCards/resorb/:userCardId', verify, userCardsController.resorb);

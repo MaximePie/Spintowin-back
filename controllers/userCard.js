@@ -1,7 +1,7 @@
 const UserCard = require('../model/userCard.js');
 const Card = require('../model/card');
 const User = require('../model/user');
-const {displayedCardsLimit} =  require("../data/config");
+const {displayedCardsLimit} = require("../data/config");
 
 /**
  * Route : "/userCards/resorb/:userCardId"
@@ -32,7 +32,7 @@ module.exports.absorbMany = async function absorbMany(request, response) {
   const userId = user._id;
   const {cardsIds} = request.body;
   const newUserCards = [];
-  cardsIds.map(async(cardId) => {
+  cardsIds.map(async (cardId) => {
     newUserCards.push(await absorbCard(cardId, userId));
   })
 
@@ -79,20 +79,67 @@ module.exports.absorb = async function absorb(request, response) {
   });
 };
 
+module.exports.reviewOne = async function reviewOne(request, response) {
+  const user = request.user;
+  const currentDate = new Date();
+
+  const userCard = await UserCard
+    .find({
+        userId: user._id,
+        nextQuestionAt: {
+          $lt: currentDate.valueOf()
+        },
+        isMemorized: {
+          $ne: true,
+        }
+      },
+    )
+    .sort({
+      currentDelay: -1,
+      nextQuestionAt: -1,
+    })
+    .findOne()
+  ;
+
+  let createdCard = null;
+  if (userCard) {
+    // Merging properties
+    const card = await Card.findById(userCard.cardId);
+    createdCard = {
+      ...userCard._doc,
+      isOwnerOfCard: user._id.toString() === card.user.toString(),
+      answer: card.answer,
+      question: card.question || null,
+      image: !!card.image.data ? card.image : null,
+    };
+  }
+
+  response.status(200).json({
+    card: createdCard,
+    remainingCards: await UserCard.count({
+      userId: user._id,
+      nextQuestionAt: {
+        $lt: currentDate.valueOf()
+      },
+      isMemorized: false,
+    })
+  })
+};
+
 module.exports.train = async function train(request, response) {
   const user = request.user;
   const currentDate = new Date();
 
   const userCards = await UserCard
     .find({
-      userId: user._id,
-      nextQuestionAt: {
-        $lt: currentDate.valueOf()
+        userId: user._id,
+        nextQuestionAt: {
+          $lt: currentDate.valueOf()
+        },
+        isMemorized: {
+          $ne: true,
+        }
       },
-      isMemorized: {
-        $ne: true,
-      }
-    },
     )
     .sort({
       currentDelay: -1,
@@ -155,12 +202,11 @@ module.exports.update = async function update(request, response) {
   card.nextQuestionAt = nextQuestionAt.valueOf();
 
   if (wasLastAnswerSuccessful) {
-    card.currentSuccessfulAnswerStreak ++;
+    card.currentSuccessfulAnswerStreak++;
     const user = await User.findById(request.user._id);
     await user.updateExperience(card);
     await user.updateProgress(card);
-  }
-  else {
+  } else {
     card.currentSuccessfulAnswerStreak = 0;
   }
 
@@ -185,7 +231,7 @@ module.exports.list = async function list(request, response) {
   const userCards = await UserCard.find({userId: request.params._id})
     .select('cardId -_id');
   const cardIds = userCards.map(card => card.cardId);
-  const cards = await Card.find({ '_id': { $in: cardIds } })
+  const cards = await Card.find({'_id': {$in: cardIds}})
     .sort({answer: 1})
 
   const connectedUserId = request.user._id;
@@ -217,7 +263,7 @@ module.exports.transfert = async function transfert(request, response) {
       currentSuccessfulAnswerStreak: card.currentSuccessfulAnswerStreak,
       nextQuestionAt: card.nextQuestionAt,
     });
-    createdCards ++;
+    createdCards++;
   });
   await response.json({userCardsToBeTransfered});
 };
