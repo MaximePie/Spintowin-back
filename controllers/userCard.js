@@ -184,7 +184,7 @@ module.exports.train = async function train(request, response) {
  */
 module.exports.update = async function update(request, response) {
 
-  const {newDelay, isMemorized} = request.body;
+  const {newDelay, isMemorized, currentSuccessfulAnswerStreak} = request.body;
   if (!newDelay && newDelay !== 0) {
     response.status(400).json({message: 'Erreur, il manque le newDelay'});
     return;
@@ -202,7 +202,12 @@ module.exports.update = async function update(request, response) {
   card.nextQuestionAt = nextQuestionAt.valueOf();
 
   if (wasLastAnswerSuccessful) {
-    card.currentSuccessfulAnswerStreak++;
+    if (!currentSuccessfulAnswerStreak) {
+      card.currentSuccessfulAnswerStreak++;
+    }
+    else {
+      card.currentSuccessfulAnswerStreak = currentSuccessfulAnswerStreak
+    }
     const user = await User.findById(request.user._id);
     await user.updateExperience(card);
     await user.updateProgress(card);
