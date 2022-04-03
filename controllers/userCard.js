@@ -1,6 +1,7 @@
 const UserCard = require('../model/userCard.js');
 const Card = require('../model/card');
 const User = require('../model/user');
+const UserWrongAnswer = require('../model/userWrongAnswer');
 const {displayedCardsLimit} = require("../data/config");
 
 /**
@@ -44,7 +45,8 @@ module.exports.absorbMany = async function absorbMany(request, response) {
 }
 
 /**
- * Absorbs the card received as a parameter and adds it to the current user cards collection
+ * Absorbs the card received as a parameter and adds
+ * it to the current user cards collection
  * @param cardId
  */
 async function absorbCard(cardId, userId) {
@@ -79,6 +81,13 @@ module.exports.absorb = async function absorb(request, response) {
   });
 };
 
+/**
+ * Returns the first card in the review list
+ * Route : /userCard/getOne
+ * @param request
+ * @param response
+ * @returns {Promise<void>}
+ */
 module.exports.reviewOne = async function reviewOne(request, response) {
   const user = request.user;
   const currentDate = new Date();
@@ -126,6 +135,13 @@ module.exports.reviewOne = async function reviewOne(request, response) {
   })
 };
 
+/**
+ * Returs the displayedCardsLimit amount of cards to the user.
+ * Route : /userCards
+ * @param request
+ * @param response
+ * @returns {Promise<void>}
+ */
 module.exports.train = async function train(request, response) {
   const user = request.user;
   const currentDate = new Date();
@@ -198,8 +214,6 @@ module.exports.update = async function update(request, response) {
   nextQuestionAt.setSeconds(nextQuestionAt.getSeconds() + newDelay);
 
   const wasLastAnswerSuccessful = newDelay > card.currentDelay;
-  card.currentDelay = newDelay;
-  card.nextQuestionAt = nextQuestionAt.valueOf();
 
   if (wasLastAnswerSuccessful) {
     card.currentSuccessfulAnswerStreak++;
@@ -208,7 +222,11 @@ module.exports.update = async function update(request, response) {
     await user.updateProgress(card);
   } else {
     card.currentSuccessfulAnswerStreak = 0;
+
+    UserWrongAnswer.create(card.currentDelay, userId)
   }
+  card.currentDelay = newDelay;
+  card.nextQuestionAt = nextQuestionAt.valueOf();
 
   if (isMemorized) {
     card.isMemorized = true;

@@ -1,5 +1,5 @@
 const User = require('../model/user');
-const Card = require('../model/card');
+const UserWrongAnswer = require("../model/userWrongAnswer");
 const bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
 
@@ -120,6 +120,18 @@ module.exports.scales = async function (request, response) {
   const results = await user.calculateMemorizedData();
   return response.json(results);
 };
+
+/**
+ * Returns the wrong answer entities for the given user
+ * Route: /users/connectedUser/wrongAnswers
+ * @param request
+ * @param response
+ * @returns {Promise<void>}
+ */
+module.exports.wrongAnswers = async function (request, response) {
+  const wrongAnswers = await UserWrongAnswer.find({userId: request.user._id});
+  response.json({wrongAnswers});
+}
 
 
 /**

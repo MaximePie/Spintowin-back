@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 
 /**
- * Cette table est censée se vider tous les jours.
+ * Contains some statistic data about the user's experience
+ * Used to track which delay is the most appropriate one.
  *
  */
 const userCardStatsSchema = mongoose.Schema({

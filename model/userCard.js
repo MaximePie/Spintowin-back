@@ -1,9 +1,5 @@
 const mongoose = require('mongoose');
 
-/**
- * Cette table est censée se vider tous les jours.
- *
- */
 const userCardSchema = mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,

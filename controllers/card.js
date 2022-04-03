@@ -2,6 +2,7 @@
 const Card = require('../model/card');
 const UserCard = require('../model/userCard');
 const User = require('../model/user');
+const UserWrongAnswer = require("../model/userWrongAnswer");
 const {cards} = require('../data/cards');
 const fs = require("fs");
 
@@ -157,16 +158,27 @@ function createCard(question, answer, user, response = undefined, image = undefi
   });
 }
 
+/**
+ * Fetch the work in progress data for the user
+ * Fetch the score for the user
+ * Fetch the wrong answers data for the user
+ * @param request
+ * @param response
+ * @returns {wrongAnswers, score, workInProgressData}
+ */
 async function stats(request, response) {
   const workInProgressData = await calculateWorkInProgress();
   const score = await calculateTotalScore();
 
   response.json({
     workInProgressData,
-    score
+    score,
   });
 }
 
+/**
+ * Returns the total score of the user
+ */
 async function calculateTotalScore() {
   const filter = {$match: {currentDelay: {$gt: 0}}};
   const accumulator = {
