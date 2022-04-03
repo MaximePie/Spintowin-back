@@ -262,7 +262,7 @@ userSchema.methods.calculateProgressData = async function () {
 
 userSchema.statics.UpdateCardForUser = async function (userId, card) {
   const user = await User.findById(userId);
-  user.updateExperience(card);
+  await user.updateExperience(card);
   user.updateProgress(card);
 }
 
