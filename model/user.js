@@ -1,3 +1,4 @@
+
 const mongoose = require('mongoose');
 const moment = require('moment');
 const {Schema} = mongoose;
@@ -259,6 +260,12 @@ userSchema.methods.calculateProgressData = async function () {
   };
 };
 
+userSchema.statics.UpdateCardForUser = async function (userId, card) {
+  const user = await User.findById(userId);
+  user.updateExperience(card);
+  user.updateProgress(card);
+}
+
 userSchema.methods.checkLastActivity = async function () {
   const todayDate = moment();
   const lastDay = moment(this.lastActivity);
@@ -282,10 +289,6 @@ userSchema.methods.calculateMemorizedData = async function () {
   const dayLength = 24 * hourLength;
   const weekLength = 7 * dayLength;
   const monthLength = 30 * dayLength;
-
-  const UserCards = UserCardStat.find({
-    userId: this._id
-  });
 
   const todayMinuteLengthCard = await UserCardStat.count({
     isMinuteLengthCard: true,

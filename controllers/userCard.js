@@ -206,6 +206,7 @@ module.exports.update = async function update(request, response) {
     return;
   }
 
+
   const {id: cardId} = request.params;
   const userId = request.user._id;
   const card = await UserCard.findOne({cardId, userId});
@@ -214,15 +215,11 @@ module.exports.update = async function update(request, response) {
   nextQuestionAt.setSeconds(nextQuestionAt.getSeconds() + newDelay);
 
   const wasLastAnswerSuccessful = newDelay > card.currentDelay;
-
   if (wasLastAnswerSuccessful) {
     card.currentSuccessfulAnswerStreak++;
-    const user = await User.findById(request.user._id);
-    await user.updateExperience(card);
-    await user.updateProgress(card);
+    User.UpdateCardForUser(request.user._id, card);
   } else {
     card.currentSuccessfulAnswerStreak = 0;
-
     UserWrongAnswer.create(card.currentDelay, userId)
   }
   card.currentDelay = newDelay;
@@ -233,7 +230,7 @@ module.exports.update = async function update(request, response) {
   }
 
   await card.save();
-  return response.json(card);
+  return response.json({message: "OK"});
 };
 
 
