@@ -12,6 +12,7 @@ const multer  = require('multer');
 const upload = multer({ dest: './uploads/' });
 const verify = require('../routes/verifyToken');
 const verifyDevelopper = require('../routes/verifyDevelopper');
+const UserWrongAnswer = require("../model/stats/userWrongAnswer");
 
 // Let's put all the routes here.
 // If the amount of routes is too big, create a folder and split the file, one file for each entity should do the work
@@ -26,7 +27,7 @@ router.get('/users/connectedUser/', verify, userController.connectedUser);
 router.get('/users/connectedUser/scales', verify, userController.scales);
 router.get('/users/connectedUser/progress', verify, userController.progress);
 router.get('/users/connectedUser/badges', verify, userController.badges);
-router.get('/users/connectedUser/wrongAnswers', verify, userController.wrongAnswers);
+router.get('/users/connectedUser/answers', verify, userController.answers);
 router.get('/users/logout/', verify, userController.login);
 
 

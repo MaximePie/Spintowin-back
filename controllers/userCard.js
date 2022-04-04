@@ -1,7 +1,7 @@
 const UserCard = require('../model/userCard.js');
 const Card = require('../model/card');
 const User = require('../model/user');
-const UserWrongAnswer = require('../model/userWrongAnswer');
+const UserAnswer = require('../model/stats/userAnswer');
 const {displayedCardsLimit} = require("../data/config");
 
 /**
@@ -200,7 +200,7 @@ module.exports.train = async function train(request, response) {
  */
 module.exports.update = async function update(request, response) {
 
-  const {newDelay, isMemorized} = request.body;
+  const {newDelay, isMemorized, answerTime: answerDelay, isFromReviewPage} = request.body;
   if (!newDelay && newDelay !== 0) {
     response.status(400).json({message: 'Erreur, il manque le newDelay'});
     return;
@@ -220,8 +220,9 @@ module.exports.update = async function update(request, response) {
     User.UpdateCardForUser(request.user._id, card);
   } else {
     card.currentSuccessfulAnswerStreak = 0;
-    UserWrongAnswer.create(card.currentDelay, userId)
   }
+  UserAnswer.createNew(card.currentDelay, userId, wasLastAnswerSuccessful, isFromReviewPage && answerDelay)
+
   card.currentDelay = newDelay;
   card.nextQuestionAt = nextQuestionAt.valueOf();
 

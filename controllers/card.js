@@ -2,7 +2,7 @@
 const Card = require('../model/card');
 const UserCard = require('../model/userCard');
 const User = require('../model/user');
-const UserWrongAnswer = require("../model/userWrongAnswer");
+const UserWrongAnswer = require("../model/stats/userWrongAnswer");
 const {cards} = require('../data/cards');
 const fs = require("fs");
 
