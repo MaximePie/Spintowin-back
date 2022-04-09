@@ -117,7 +117,7 @@ module.exports.reviewOne = async function reviewOne(request, response) {
   const userCard = await UserCard
     .find(query)
     .sort({
-      currentDelay: -1,
+      currentDelay: 1,
       nextQuestionAt: -1,
     })
     .findOne()
