@@ -3,6 +3,7 @@ const Card = require('../model/card');
 const User = require('../model/user');
 const UserAnswer = require('../model/stats/userAnswer');
 const {displayedCardsLimit} = require("../data/config");
+const mongoose = require("mongoose");
 
 /**
  * Route : "/userCards/resorb/:userCardId"
@@ -92,23 +93,38 @@ module.exports.reviewOne = async function reviewOne(request, response) {
   const user = request.user;
   const currentDate = new Date();
 
+  const {categories} = request.body;
+
+
+  const query = {};
+  query.userId = user._id;
+  query.nextQuestionAt = {
+    $lt: currentDate.valueOf()
+  }
+  query.isMemorized = {
+    $ne: true,
+  }
+
+
+  if (categories.length) {
+    query.categoryId = {
+      $in: categories.map(category => mongoose.Types.ObjectId(category))
+    }
+  }
+
+  console.log(query);
+
+
   const userCard = await UserCard
-    .find({
-        userId: user._id,
-        nextQuestionAt: {
-          $lt: currentDate.valueOf()
-        },
-        isMemorized: {
-          $ne: true,
-        }
-      },
-    )
+    .find(query)
     .sort({
       currentDelay: -1,
       nextQuestionAt: -1,
     })
     .findOne()
   ;
+
+  console.log(query);
 
   let createdCard = null;
   if (userCard) {

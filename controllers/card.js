@@ -5,6 +5,7 @@ const User = require('../model/user');
 const UserWrongAnswer = require("../model/stats/userWrongAnswer");
 const {cards} = require('../data/cards');
 const fs = require("fs");
+const mongoose = require("mongoose");
 
 module.exports.delete = async function deleteCard(request, response) {
   const deletedCard = await Card.deleteOne({_id: request.params.id});
@@ -106,7 +107,7 @@ async function getOne(request, response) {
     user: user._id,
     nextQuestionAt: {
       $lt: lastCard.nextQuestionAt,
-    }
+    },
   })
   .sort({
     nextQuestionAt: -1,
