@@ -1,8 +1,10 @@
 const UserCard = require('../model/userCard.js');
 const Card = require('../model/card');
 const User = require('../model/user');
-const UserWrongAnswer = require('../model/userWrongAnswer');
+const UserAnswer = require('../model/stats/userAnswer');
 const {displayedCardsLimit} = require("../data/config");
+const mongoose = require("mongoose");
+const Category = require("../model/category");
 
 /**
  * Route : "/userCards/resorb/:userCardId"
@@ -92,34 +94,51 @@ module.exports.reviewOne = async function reviewOne(request, response) {
   const user = request.user;
   const currentDate = new Date();
 
+  const {categories} = request.body;
+
+
+  const query = {};
+  query.userId = user._id;
+  query.nextQuestionAt = {
+    $lt: currentDate.valueOf()
+  }
+  query.isMemorized = {
+    $ne: true,
+  }
+
+
+  if (categories.length) {
+    query.categoryId = {
+      $in: categories.map(category => mongoose.Types.ObjectId(category))
+    }
+  }
+
+
   const userCard = await UserCard
-    .find({
-        userId: user._id,
-        nextQuestionAt: {
-          $lt: currentDate.valueOf()
-        },
-        isMemorized: {
-          $ne: true,
-        }
-      },
-    )
+    .find(query)
     .sort({
-      currentDelay: -1,
+      currentDelay: 1,
       nextQuestionAt: -1,
     })
     .findOne()
   ;
 
+
+
   let createdCard = null;
   if (userCard) {
     // Merging properties
     const card = await Card.findById(userCard.cardId);
+
+    const category = await Category.findById(userCard.categoryId);
+
     createdCard = {
       ...userCard._doc,
       isOwnerOfCard: user._id.toString() === card.user.toString(),
       answer: card.answer,
       question: card.question || null,
       image: !!card.image.data ? card.image : null,
+      category: category?.title
     };
   }
 
@@ -200,7 +219,7 @@ module.exports.train = async function train(request, response) {
  */
 module.exports.update = async function update(request, response) {
 
-  const {newDelay, isMemorized} = request.body;
+  const {newDelay, isMemorized, answerTime: answerDelay, isFromReviewPage} = request.body;
   if (!newDelay && newDelay !== 0) {
     response.status(400).json({message: 'Erreur, il manque le newDelay'});
     return;
@@ -220,8 +239,9 @@ module.exports.update = async function update(request, response) {
     User.UpdateCardForUser(request.user._id, card);
   } else {
     card.currentSuccessfulAnswerStreak = 0;
-    UserWrongAnswer.create(card.currentDelay, userId)
   }
+  UserAnswer.createNew(card.currentDelay, userId, wasLastAnswerSuccessful, isFromReviewPage && answerDelay)
+
   card.currentDelay = newDelay;
   card.nextQuestionAt = nextQuestionAt.valueOf();
 
@@ -282,3 +302,35 @@ module.exports.transfert = async function transfert(request, response) {
   });
   await response.json({userCardsToBeTransfered});
 };
+
+/**
+ * Attaches a category to a userCard
+ * Route : /userCards/categories/add/:_id
+ * @param request
+ * @param response
+ * @return {Promise<void>}
+ */
+module.exports.addCategory = async function (request, response) {
+  const {_id} = request.params;
+  const {categoryIdentifier} = request.body;
+
+  const userCard = await UserCard.findById(_id);
+  if (userCard) {
+    const category = await Category.findOne({title: categoryIdentifier})
+    if (category) {
+      userCard.categoryId = category._id
+      response.json({
+        code: 200,
+      })
+    }
+    else {
+      response.json({
+        message: "Category not found",
+        code: 500,
+      })
+    }
+  }
+  else {
+    response.json({message: "User card not found", code: 500})
+  }
+}

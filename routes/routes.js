@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const lessonsController = require('../controllers/lesson');
-const chapterController = require('../controllers/chapter');
 const cardsController = require('../controllers/card');
 const userCardsController = require('../controllers/userCard');
 const userController = require('../controllers/user');
 const badgeController = require('../controllers/badge');
+const categoriesController = require('../controllers/category');
 const seeder = require('../database/seeder');
 
 const multer  = require('multer');
@@ -26,7 +25,7 @@ router.get('/users/connectedUser/', verify, userController.connectedUser);
 router.get('/users/connectedUser/scales', verify, userController.scales);
 router.get('/users/connectedUser/progress', verify, userController.progress);
 router.get('/users/connectedUser/badges', verify, userController.badges);
-router.get('/users/connectedUser/wrongAnswers', verify, userController.wrongAnswers);
+router.get('/users/connectedUser/answers', verify, userController.answers);
 router.get('/users/logout/', verify, userController.login);
 
 
@@ -39,16 +38,19 @@ router.get('/cards/delete/:id', cardsController.delete);
 router.get('/cards/deleteAll', verify, cardsController.deleteAll);
 
 // UserCards
-router.get('/userCards/getOne', verify, userCardsController.reviewOne);
 router.get('/userCards', verify, userCardsController.train);
 router.get('/userCards/absorb/:id', verify, userCardsController.absorb);
 router.get('/userCards/resorb/:userCardId', verify, userCardsController.resorb);
 router.get('/userCards/list/:_id', verify, userCardsController.list);
 router.get('/userCards/transfert/:_id', verifyDevelopper, userCardsController.transfert);
+router.post('/userCards/categories/add/:_id', verify, userCardsController.addCategory);
+router.post('/userCards/getOne', verify, userCardsController.reviewOne);
 router.post('/userCards/absorbMany', verify, userCardsController.absorbMany);
 router.post('/userCards/update/:id', verify, userCardsController.update);
 
 
+router.get('/userCards/categories', verify, categoriesController.categories);
+router.post('/userCards/categories', verify, categoriesController.createCategory);
 // Admin cards
 router.post('/seed', verifyDevelopper, seeder.seed);
 router.post('/badge', verifyDevelopper, badgeController.create);

@@ -1,5 +1,5 @@
 const User = require('../model/user');
-const UserWrongAnswer = require("../model/userWrongAnswer");
+const UserWrongAnswer = require("../model/stats/userWrongAnswer");
 const bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
 
@@ -7,6 +7,7 @@ var jwt = require('jsonwebtoken');
 
 const Joi = require('joi');
 const mongoose = require("mongoose");
+const UserAnswer = require("../model/stats/userAnswer");
 
 const validationSchema = Joi.object({
     username: Joi.string().min(6).required(),
@@ -129,11 +130,11 @@ module.exports.scales = async function (request, response) {
  * @param response
  * @returns {Promise<void>}
  */
-module.exports.wrongAnswers = async function (request, response) {
+module.exports.answers = async function (request, response) {
     const userId = mongoose.Types.ObjectId(request.user._id)
-    const wrongAnswers = await UserWrongAnswer
+    const wrongAnswers = await UserAnswer
         .aggregate([
-            { $match : { userId : userId } },
+            { $match : { userId, isSuccessful: false } },
             {
                 $group:
                     {
@@ -142,7 +143,19 @@ module.exports.wrongAnswers = async function (request, response) {
                     }
             },
         ])
-    response.json({wrongAnswers});
+    const answerDelays = await UserAnswer.aggregate(([
+        {
+            $match: {userId}
+        },
+        {
+            $group:
+              {
+                  _id: "$cardDelay",
+                  average: { $avg: "$answerDelay"}
+              }
+        }
+    ]))
+    response.json({wrongAnswers, answerDelays});
 }
 
 

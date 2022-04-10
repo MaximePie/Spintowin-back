@@ -2,9 +2,10 @@
 const Card = require('../model/card');
 const UserCard = require('../model/userCard');
 const User = require('../model/user');
-const UserWrongAnswer = require("../model/userWrongAnswer");
+const UserWrongAnswer = require("../model/stats/userWrongAnswer");
 const {cards} = require('../data/cards');
 const fs = require("fs");
+const mongoose = require("mongoose");
 
 module.exports.delete = async function deleteCard(request, response) {
   const deletedCard = await Card.deleteOne({_id: request.params.id});
@@ -70,7 +71,7 @@ function create(request, response) {
   const {user} = request;
   if (request.body) {
     let errors = [];
-    const {question, answer} = request.body;
+    const {question, answer, category} = request.body;
     const file = request.file;
     let cardImage = undefined;
     if (file) {
@@ -89,7 +90,7 @@ function create(request, response) {
     }
 
     if (!errors.length) {
-      createCard(question, answer, user, response, cardImage);
+      createCard(question, answer, user, response, cardImage, category);
     } else {
       response.status(400).json({message: errors});
     }
@@ -106,7 +107,7 @@ async function getOne(request, response) {
     user: user._id,
     nextQuestionAt: {
       $lt: lastCard.nextQuestionAt,
-    }
+    },
   })
   .sort({
     nextQuestionAt: -1,
@@ -125,8 +126,9 @@ async function getOne(request, response) {
  * @param user The user we want to attach to the Card
  * @param response
  * @param image
+ * @param category
  */
-function createCard(question, answer, user, response = undefined, image = undefined) {
+function createCard(question, answer, user, response = undefined, image = undefined, category = undefined) {
   const newDate = new Date();
 
   Card.create({
@@ -145,6 +147,7 @@ function createCard(question, answer, user, response = undefined, image = undefi
       cardId: data._id,
       delay: 0,
       nextQuestionAt: newDate.valueOf(),
+      categoryId: category || null,
     });
 
     if (response) {

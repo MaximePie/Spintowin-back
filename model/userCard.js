@@ -9,6 +9,10 @@ const userCardSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Card'
   },
+  categoryId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category'
+  },
   currentDelay: {type: Number, default: 0},
   currentSuccessfulAnswerStreak: {type: Number, default: 0},
   nextQuestionAt: {type: Date},
