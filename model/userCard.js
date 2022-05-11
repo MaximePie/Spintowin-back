@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const Card = require("./card");
+const Category = require("./category");
 
 const userCardSchema = mongoose.Schema({
   userId: {
@@ -18,6 +20,26 @@ const userCardSchema = mongoose.Schema({
   nextQuestionAt: {type: Date},
   isMemorized: {type: Boolean, default: false},
 });
+
+/**
+ *
+ * Re-assemble the cards info to display it on screen
+ *
+ * @param user The user asking for a formatted Card
+ * @return The formatted card ready to be displayed on screen
+ */
+userCardSchema.methods.formatted = async function (user) {
+  const card = await Card.findById(this.cardId);
+  const category = await Category.findById(this.categoryId);
+  return {
+    ...this._doc,
+    isOwnerOfCard: user._id.toString() === card.user.toString(),
+    answer: card.answer,
+    question: card.question || null,
+    image: card.image.data ? card.image : null,
+    category: category?.title
+  }
+}
 
 const UserCard = mongoose.model('userCard', userCardSchema);
 

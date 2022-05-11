@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const {intervals} = require("../data/cards");
 
 const cardSchema = mongoose.Schema({
   question: {type: String},
@@ -15,6 +16,22 @@ const cardSchema = mongoose.Schema({
     ref: 'User'
   },
 });
+
+
+/**
+ * Increase the delay of the user Card
+ * Updates the Next question at
+ *
+ */
+cardSchema.methods.increaseDelay = function () {
+  const currentDelayIndex = intervals.indexOf(this.currentDelay);
+  this.currentDelay = intervals[currentDelayIndex + 1];
+  if (this.experience >= this.experienceRequiredForNextLevel) {
+    this.gainLevel();
+  }
+  return this.save();
+};
+
 
 const Card = mongoose.model('Card', cardSchema);
 

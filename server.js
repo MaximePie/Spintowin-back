@@ -1,6 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-const multer = require('multer');
 const app = express();
 const mongoose = require('mongoose');
 const {url} = require('./database/databaseService');
@@ -22,5 +21,6 @@ mongoose.connect(url,
 const routes = require('./routes/routes');
 app.use('/', routes);
 
-const port = process.env.PORT || 4001;
+const defaultPort = 4001;
+const port = process.env.PORT || defaultPort;
 app.listen(port, () => console.log(`Listening on port ${port}`));

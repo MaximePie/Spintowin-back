@@ -6,6 +6,11 @@ const {displayedCardsLimit} = require("../data/config");
 const mongoose = require("mongoose");
 const Category = require("../model/category");
 
+const success = 200;
+const error = {
+  notFound: 404
+};
+
 /**
  * Route : "/userCards/resorb/:userCardId"
  * Remove the userCard receveived as a parameter from the userCards collection
@@ -21,7 +26,7 @@ module.exports.resorb = async function resorb(request, response) {
     _id: userCardId
   });
 
-  response.status(200).json(deletedCard);
+  response.status(success).json(deletedCard);
 };
 
 /**
@@ -37,19 +42,20 @@ module.exports.absorbMany = async function absorbMany(request, response) {
   const newUserCards = [];
   cardsIds.map(async (cardId) => {
     newUserCards.push(await absorbCard(cardId, userId));
-  })
+  });
 
   return response.json({
     cardsIds,
     user: userId,
     newUserCards
   });
-}
+};
 
 /**
  * Absorbs the card received as a parameter and adds
  * it to the current user cards collection
  * @param cardId
+ * @param userId
  */
 async function absorbCard(cardId, userId) {
   const newDate = new Date();
@@ -91,67 +97,20 @@ module.exports.absorb = async function absorb(request, response) {
  * @returns {Promise<void>}
  */
 module.exports.reviewOne = async function reviewOne(request, response) {
-  const user = request.user;
-  const currentDate = new Date();
+  const user = await User.findById(request.user._id);
 
   const {categories} = request.body;
 
-
-  const query = {};
-  query.userId = user._id;
-  query.nextQuestionAt = {
-    $lt: currentDate.valueOf()
-  }
-  query.isMemorized = {
-    $ne: true,
-  }
-
-
-  if (categories.length) {
-    query.categoryId = {
-      $in: categories.map(category => mongoose.Types.ObjectId(category))
-    }
-  }
-
-
-  const userCard = await UserCard
-    .find(query)
-    .sort({
-      currentDelay: 1,
-      nextQuestionAt: -1,
-    })
-    .findOne()
-  ;
-
-
-
-  let createdCard = null;
+  const userCard = await user.reviewQuestions(categories).findOne();
   if (userCard) {
     // Merging properties
-    const card = await Card.findById(userCard.cardId);
-
-    const category = await Category.findById(userCard.categoryId);
-
-    createdCard = {
-      ...userCard._doc,
-      isOwnerOfCard: user._id.toString() === card.user.toString(),
-      answer: card.answer,
-      question: card.question || null,
-      image: !!card.image.data ? card.image : null,
-      category: category?.title
-    };
+    const card = await userCard.formatted(user);
+    const remainingCards = await user.remainingQuestionsCount();
+    response.status(success).json({card, remainingCards,})
   }
-
-  response.status(200).json({
-    card: createdCard,
-    remainingCards: await UserCard.count({
-      userId: user._id,
-      nextQuestionAt: {
-        $lt: currentDate.valueOf()
-      },
-      isMemorized: false,
-    })
-  })
+  else {
+    response.status(error.notFound).json({message: "La carte n'existe pas"});
+  }
 };
 
 /**
@@ -162,51 +121,41 @@ module.exports.reviewOne = async function reviewOne(request, response) {
  * @returns {Promise<void>}
  */
 module.exports.train = async function train(request, response) {
-  const user = request.user;
-  const currentDate = new Date();
+  /**
+   * @type {User}
+   */
+  const user = await User.findById(request.user._id);
+  if (!user) {
+    throw new Error("User not found");
+  }
 
-  const userCards = await UserCard
-    .find({
-        userId: user._id,
-        nextQuestionAt: {
-          $lt: currentDate.valueOf()
-        },
-        isMemorized: {
-          $ne: true,
-        }
-      },
-    )
-    .sort({
-      currentDelay: -1,
-      nextQuestionAt: -1,
-    })
-    .find()
-    .limit(displayedCardsLimit)
-  ;
+  const reviewCards = await user.reviewQuestions().limit(displayedCardsLimit);
 
   // Merging properties
-  const cards = await Promise.all(userCards.map(async (userCard) => {
-    const card = await Card.findById(userCard.cardId);
-    const createdCard = {
-      ...userCard._doc,
-      isOwnerOfCard: user._id.toString() === card.user.toString(),
-      answer: card.answer,
-      question: card.question || null,
-      image: !!card.image.data ? card.image : null,
-    };
-    return createdCard
-  }));
+  const cards = await Promise.all(reviewCards.map(async (reviewCard) => reviewCard.formatted(user)));
 
-  response.status(200).json({
-    cards: await cards,
-    remainingCards: await UserCard.count({
-      userId: user._id,
-      nextQuestionAt: {
-        $lt: currentDate.valueOf()
-      },
-      isMemorized: false,
-    })
+  response.status(success).json({
+    cards,
+    remainingCards: await user.remainingQuestionsCount(),
   })
+};
+
+/**
+ * Update the UserCard
+ *  update delay according to answer state
+ *  update nextQuestionAt field
+ *   True : Increase
+ *   False : Reset
+ *
+ * Update the User
+ *  UpdateCardForUser
+ *
+ * @param request
+ * @param response
+ * @return {Promise<void>}
+ */
+module.exports.updateV2 = async function update (request, response) {
+
 };
 
 
@@ -227,6 +176,9 @@ module.exports.update = async function update(request, response) {
 
 
   const {id: cardId} = request.params;
+  if (!cardId) {
+    throw Error("Card ID has to be defined");
+  }
   const userId = request.user._id;
   const card = await UserCard.findOne({cardId, userId});
 
@@ -240,7 +192,7 @@ module.exports.update = async function update(request, response) {
   } else {
     card.currentSuccessfulAnswerStreak = 0;
   }
-  UserAnswer.createNew(card.currentDelay, userId, wasLastAnswerSuccessful, isFromReviewPage && answerDelay)
+  UserAnswer.createNew(card.currentDelay, userId, wasLastAnswerSuccessful, isFromReviewPage && answerDelay);
 
   card.currentDelay = newDelay;
   card.nextQuestionAt = nextQuestionAt.valueOf();
@@ -257,7 +209,7 @@ module.exports.update = async function update(request, response) {
 /**
  * Route /userCards/list/:_id
  * Sends back the complete list of cards assigned to a user
- * @param request.params._id : The _id of the user
+ * @param request params._id The _id of the user
  * @param response
  * @returns {Promise<void>}
  */
@@ -267,10 +219,10 @@ module.exports.list = async function list(request, response) {
     .select('cardId -_id');
   const cardIds = userCards.map(card => card.cardId);
   const cards = await Card.find({'_id': {$in: cardIds}})
-    .sort({answer: 1})
+    .sort({answer: 1});
 
   const connectedUserId = request.user._id;
-  const connectedUserCards = await UserCard.find({userId: connectedUserId}, {"cardId": 1, "_id": 0})
+  const connectedUserCards = await UserCard.find({userId: connectedUserId}, {"cardId": 1, "_id": 0});
   const connectedUserCardsIds = connectedUserCards.map(connectedUserCard => connectedUserCard.cardId.toString());
   const formatedCards = cards.map(card => {
       return {
@@ -316,11 +268,11 @@ module.exports.addCategory = async function (request, response) {
 
   const userCard = await UserCard.findById(_id);
   if (userCard) {
-    const category = await Category.findOne({title: categoryIdentifier})
+    const category = await Category.findOne({title: categoryIdentifier});
     if (category) {
-      userCard.categoryId = category._id
+      userCard.categoryId = category._id;
       response.json({
-        code: 200,
+        code: success,
       })
     }
     else {
@@ -333,4 +285,4 @@ module.exports.addCategory = async function (request, response) {
   else {
     response.json({message: "User card not found", code: 500})
   }
-}
+};

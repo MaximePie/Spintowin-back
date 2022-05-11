@@ -8,6 +8,7 @@ const Badge = require('./badge');
 const UserCardStat = require('./userCardStat');
 const {requiredExpForNextLevel} = require('../data/config');
 const {startedInterval, minuteInterval, hourInterval, dayInterval, weekInterval, monthInterval} = require('../data/cards');
+const UserCard = require("./userCard");
 
 const userSchema = mongoose.Schema({
   username: {
@@ -259,13 +260,6 @@ userSchema.methods.calculateProgressData = async function () {
     }),
   };
 };
-
-userSchema.statics.UpdateCardForUser = async function (userId, card) {
-  const user = await User.findById(userId);
-  await user.updateExperience(card);
-  user.updateProgress(card);
-}
-
 userSchema.methods.checkLastActivity = async function () {
   const todayDate = moment();
   const lastDay = moment(this.lastActivity);
@@ -330,6 +324,59 @@ userSchema.methods.calculateMemorizedData = async function () {
   return results
 };
 
+
+/**
+ * Returns the reviewQuestions onGoing query for the User
+ *
+ * @param categories {array} of question Categories
+ * @return {QueryWithHelpers<Array<Document<any, any>>, Document<any, any>, {}>}
+ */
+userSchema.methods.reviewQuestions = function (categories = []) {
+  const currentDate = new Date();
+  const query = {
+    userId: this._id,
+    nextQuestionAt: {
+      $lt: currentDate.valueOf()
+    },
+    isMemorized: {
+      $ne: true,
+    }
+  };
+
+  if (categories.length) {
+    query.categoryId = {
+      $in: categories.map(category => mongoose.Types.ObjectId(category))
+    }
+  }
+
+  return UserCard
+    .find(query)
+    .sort({
+      currentDelay: 1,
+      nextQuestionAt: -1,
+    })
+    .find()
+};
+
+userSchema.methods.remainingQuestionsCount = async function() {
+  const currentDate = new Date();
+
+  return UserCard.count({
+    userId: this._id,
+    nextQuestionAt: {
+      $lt: currentDate.valueOf()
+    },
+    isMemorized: false,
+  })
+}
+
+
+
+userSchema.statics.UpdateCardForUser = async function (userId, card) {
+  const user = await User.findById(userId);
+  await user.updateExperience(card);
+  user.updateProgress(card);
+}
 
 const User = mongoose.model('User', userSchema);
 

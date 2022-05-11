@@ -47,6 +47,7 @@ router.post('/userCards/categories/add/:_id', verify, userCardsController.addCat
 router.post('/userCards/getOne', verify, userCardsController.reviewOne);
 router.post('/userCards/absorbMany', verify, userCardsController.absorbMany);
 router.post('/userCards/update/:id', verify, userCardsController.update);
+router.post('/userCards/update2/:id', verify, userCardsController.updateV2);
 
 
 router.get('/userCards/categories', verify, categoriesController.categories);
