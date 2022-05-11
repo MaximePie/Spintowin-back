@@ -3,7 +3,6 @@ const Card = require('../model/card');
 const User = require('../model/user');
 const UserAnswer = require('../model/stats/userAnswer');
 const {displayedCardsLimit} = require("../data/config");
-const mongoose = require("mongoose");
 const Category = require("../model/category");
 
 const success = 200;
