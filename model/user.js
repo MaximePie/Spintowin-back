@@ -50,6 +50,9 @@ const userSchema = mongoose.Schema({
     {type: Schema.Types.ObjectId, ref: 'Card'}
   ],
   lastActivity: {type: Date},
+
+  // Has categories displayed
+  hasCategoriesDisplayed: {type: Boolean, default: true}
 });
 
 

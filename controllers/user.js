@@ -26,7 +26,7 @@ async function create(request, response) {
     username,
     email,
     password,
-  }
+  };
 
   // Validation
   const validation = validationSchema.validate(userCredentials);
@@ -108,7 +108,7 @@ module.exports.connectedUser = async function (request, response) {
 module.exports.index = async function (request, response) {
   const users = await User.find({});
   await response.json({users})
-}
+};
 
 /**
  * Route : /users/connectedUser/scales
@@ -131,7 +131,7 @@ module.exports.scales = async function (request, response) {
  * @returns {Promise<void>}
  */
 module.exports.answers = async function (request, response) {
-  const userId = mongoose.Types.ObjectId(request.user._id)
+  const userId = mongoose.Types.ObjectId(request.user._id);
 
   const answerDelays = await UserAnswer.aggregate(([
     {
@@ -147,7 +147,7 @@ module.exports.answers = async function (request, response) {
           total: {$count: {}}
         },
     },
-  ]))
+  ]));
 
   const answersStats = answerDelays.map(({_id: delay, average: delayAverage, succesfulAnswers, wrongAnswers, total}) => {
     return {
@@ -155,10 +155,10 @@ module.exports.answers = async function (request, response) {
       delayAverage,
       successfulAnswersRate: Math.round(succesfulAnswers / total * 100)
     }
-  })
+  });
 
   response.json({answersStats});
-}
+};
 
 
 /**
@@ -184,6 +184,16 @@ module.exports.badges = async function (request, response) {
   const user = await User.findById(request.user);
   const badges = await user.badges();
   return response.json(badges)
+};
+
+module.exports.updatePreferences = async function (request, response) {
+
+  const { hasCategoriesDisplayed } = request.body;
+  await User.findByIdAndUpdate(request.user, {
+    hasCategoriesDisplayed
+  });
+
+  response.json(await User.findById(request.user));
 };
 
 /**

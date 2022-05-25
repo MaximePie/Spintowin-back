@@ -27,6 +27,7 @@ router.get('/users/connectedUser/progress', verify, userController.progress);
 router.get('/users/connectedUser/badges', verify, userController.badges);
 router.get('/users/connectedUser/answers', verify, userController.answers);
 router.get('/users/logout/', verify, userController.login);
+router.post('/users/connectedUser/preferences/update', verify, userController.updatePreferences);
 
 
 // Cards
