@@ -188,9 +188,10 @@ module.exports.badges = async function (request, response) {
 
 module.exports.updatePreferences = async function (request, response) {
 
-  const { hasCategoriesDisplayed } = request.body;
+  const { hasCategoriesDisplayed, hasStreakNotifications } = request.body;
   await User.findByIdAndUpdate(request.user, {
-    hasCategoriesDisplayed
+    hasCategoriesDisplayed,
+    hasStreakNotifications
   });
 
   response.json(await User.findById(request.user));

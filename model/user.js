@@ -52,7 +52,8 @@ const userSchema = mongoose.Schema({
   lastActivity: {type: Date},
 
   // Has categories displayed
-  hasCategoriesDisplayed: {type: Boolean, default: true}
+  hasCategoriesDisplayed: {type: Boolean, default: true},
+  hasStreakNotifications: {type: Boolean, default: true}
 });
 
 
