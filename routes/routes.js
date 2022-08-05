@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const cardsController = require('../controllers/card');
+const userIntervalController = require('../controllers/userInterval');
 const userCardsController = require('../controllers/userCard');
 const userController = require('../controllers/user');
 const badgeController = require('../controllers/badge');
@@ -56,6 +57,7 @@ router.post('/userCards/categories', verify, categoriesController.createCategory
 // Admin cards
 router.post('/seed', verifyDevelopper, seeder.seed);
 router.post('/badge', verifyDevelopper, badgeController.create);
+router.get('/createIntervals', verifyDevelopper, userIntervalController.create);
 
 
 module.exports = router;

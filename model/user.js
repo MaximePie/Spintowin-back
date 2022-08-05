@@ -356,7 +356,7 @@ userSchema.methods.reviewQuestions = function (categories = []) {
   return UserCard
     .find(query)
     .sort({
-      currentDelay: 1,
+      currentDelay: -1,
       nextQuestionAt: -1,
     })
     .find()

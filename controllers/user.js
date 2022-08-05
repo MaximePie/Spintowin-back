@@ -8,6 +8,7 @@ var jwt = require('jsonwebtoken');
 const Joi = require('joi');
 const mongoose = require("mongoose");
 const UserAnswer = require("../model/stats/userAnswer");
+const UserInterval = require("../model/userInterval");
 
 const validationSchema = Joi.object({
   username: Joi.string().min(6).required(),
@@ -51,6 +52,8 @@ async function create(request, response) {
   });
   try {
     user.save().then((user) => {
+      UserInterval.createForUser(user._id);
+
       const token = jwt.sign({
           _id: user._id,
         },
@@ -96,7 +99,13 @@ async function login(request, response) {
 
 module.exports.connectedUser = async function (request, response) {
   const user = await User.findById(request.user._id);
-  return response.json(user);
+  const intervals = await UserInterval.find({
+    userId: user._id,
+  });
+  return response.json({
+    ...user._doc,
+    intervals,
+  });
 };
 
 /**
@@ -149,7 +158,13 @@ module.exports.answers = async function (request, response) {
     },
   ]));
 
-  const answersStats = answerDelays.map(({_id: delay, average: delayAverage, succesfulAnswers, wrongAnswers, total}) => {
+  const answersStats = answerDelays.map(({
+                                           _id: delay,
+                                           average: delayAverage,
+                                           succesfulAnswers,
+                                           wrongAnswers,
+                                           total
+                                         }) => {
     return {
       delay,
       delayAverage,
@@ -188,13 +203,21 @@ module.exports.badges = async function (request, response) {
 
 module.exports.updatePreferences = async function (request, response) {
 
-  const { hasCategoriesDisplayed, hasStreakNotifications } = request.body;
+  const {
+    hasCategoriesDisplayed,
+    hasStreakNotifications,
+    changedInterval
+  } = request.body;
+
+  const targetInterval = UserInterval.findByIdAndUpdate(changedInterval._id, changedInterval);
+
+
   await User.findByIdAndUpdate(request.user, {
     hasCategoriesDisplayed,
     hasStreakNotifications
   });
 
-  response.json(await User.findById(request.user));
+  response.json({user: await User.findById(request.user), targetInterval});
 };
 
 /**
