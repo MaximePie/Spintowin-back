@@ -114,6 +114,11 @@ module.exports.reviewOne = async function reviewOne(request, response) {
 
 /**
  * Returs the displayedCardsLimit amount of cards to the user.
+ *
+ * Priority (to save bandwidth):
+ * 1 - Cards without image
+ * 2 - Cards with images, but only 3 at the same time
+ *
  * Route : /userCards
  * @param request
  * @param response
@@ -131,10 +136,15 @@ module.exports.train = async function train(request, response) {
   const reviewCards = await user.reviewQuestions().limit(displayedCardsLimit);
 
   // Merging properties
-  const cards = await Promise.all(reviewCards.map(async (reviewCard) => reviewCard.formatted(user)));
+  const cardsList = await Promise.all(reviewCards.map(async (reviewCard) => reviewCard.formatted(user)));
+  const cardsWithoutImage = cardsList.filter(({image}) => !image);
+
+
+  const returnedCards = 0 < cardsWithoutImage.length ? cardsWithoutImage : cardsList.slice(0, 3);
 
   response.status(success).json({
-    cards,
+    cards: returnedCards,
+    cardsWithoutImage,
     remainingCards: await user.remainingQuestionsCount(),
   })
 };
