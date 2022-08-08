@@ -128,17 +128,28 @@ module.exports.train = async function train(request, response) {
   /**
    * @type {User}
    */
+
   const user = await User.findById(request.user._id);
   if (!user) {
     throw new Error("User not found");
   }
-
   const reviewCards = await user.reviewQuestions().limit(displayedCardsLimit);
 
   // Merging properties
-  const cardsList = await Promise.all(reviewCards.map(async (reviewCard) => reviewCard.formatted(user)));
-  const cardsWithoutImage = cardsList.filter(({image}) => !image);
+  const cardsList = reviewCards.map(userCard => {
+    const {cardId: card, categoryId: category} = userCard;
+    return {
+      ...userCard._doc,
+      cardId: card._id,
+      isOwnerOfCard: user._id.toString() === userCard.userId.toString(),
+      answer: card.answer,
+      question: card.question || null,
+      image: card.image.data ? card.image : null,
+      category: category?.title
+    }
+  });
 
+  const cardsWithoutImage = cardsList.filter(({image}) => !image);
 
   const returnedCards = 0 < cardsWithoutImage.length ? cardsWithoutImage : cardsList.slice(0, 3);
 

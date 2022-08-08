@@ -359,6 +359,9 @@ userSchema.methods.reviewQuestions = function (categories = []) {
       currentDelay: -1,
       nextQuestionAt: -1,
     })
+    .populate('cardId')
+    .populate('categoryId')
+    // .populate('userId')
     .find()
 };
 
