@@ -9,5 +9,4 @@ const params = {
   databaseName: process.env.DATABASENAME,
 };
 
-const url = `mongodb+srv://${params.username}:${params.password}@${params.host}/${params.databaseName}?retryWrites=true&w=majority`;
-exports.url = url;
+export const url = `mongodb+srv://${params.username}:${params.password}@${params.host}/${params.databaseName}?retryWrites=true&w=majority`;

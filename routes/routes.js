@@ -1,17 +1,17 @@
-const express = require('express');
-const router = express.Router();
-const cardsController = require('../controllers/card');
-const userIntervalController = require('../controllers/userInterval');
-const userCardsController = require('../controllers/userCard');
-const userController = require('../controllers/user');
-const badgeController = require('../controllers/badge');
-const categoriesController = require('../controllers/category');
-const seeder = require('../database/seeder');
+import multer from 'multer'
+import express from 'express'
 
-const multer  = require('multer');
-const upload = multer({ dest: './uploads/' });
-const verify = require('../routes/verifyToken');
-const verifyDevelopper = require('../routes/verifyDevelopper');
+import cardsController from '../controllers/card.js'
+import userCardsController from '../controllers/userCard.js'
+import userController from '../controllers/user.js'
+import badgeController from '../controllers/badge.js'
+import categoriesController from '../controllers/category.js'
+import seeder from '../database/seeder.js'
+import verify from '../routes/verifyToken.js'
+import verifyDevelopper from '../routes/verifyDevelopper.js'
+
+const router = express.Router();
+const upload = multer({dest: './uploads/'});
 
 // Let's put all the routes here.
 // If the amount of routes is too big, create a folder and split the file, one file for each entity should do the work
@@ -35,8 +35,8 @@ router.post('/users/connectedUser/preferences/update', verify, userController.up
 router.get('/cards/getOne', verify, cardsController.getOne);
 router.get('/cards/stats', verify, cardsController.stats);
 router.post('/cards/', verify, upload.single('file'), cardsController.create);
-router.post('/cards/edit/:id', verify, cardsController.edit);
-router.get('/cards/delete/:id', cardsController.delete);
+router.post('/cards/edit/:id', verify, cardsController.editCard);
+router.get('/cards/delete/:id', cardsController.deleteCard);
 router.get('/cards/deleteAll', verify, cardsController.deleteAll);
 
 // UserCards
@@ -45,11 +45,9 @@ router.get('/userCards/absorb/:id', verify, userCardsController.absorb);
 router.get('/userCards/resorb/:userCardId', verify, userCardsController.resorb);
 router.get('/userCards/list/:_id', verify, userCardsController.list);
 router.get('/userCards/transfert/:_id', verifyDevelopper, userCardsController.transfert);
-router.post('/userCards/categories/add/:_id', verify, userCardsController.addCategory);
 router.post('/userCards/getOne', verify, userCardsController.reviewOne);
 router.post('/userCards/absorbMany', verify, userCardsController.absorbMany);
 router.post('/userCards/update/:id', verify, userCardsController.update);
-router.post('/userCards/update2/:id', verify, userCardsController.updateV2);
 
 
 router.get('/userCards/categories', verify, categoriesController.categories);
@@ -57,7 +55,6 @@ router.post('/userCards/categories', verify, categoriesController.createCategory
 // Admin cards
 router.post('/seed', verifyDevelopper, seeder.seed);
 router.post('/badge', verifyDevelopper, badgeController.create);
-router.get('/createIntervals', verifyDevelopper, userIntervalController.create);
 
 
-module.exports = router;
+export default router

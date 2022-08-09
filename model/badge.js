@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const badgeSchema = mongoose.Schema({
   color: {type: String, required: true},
@@ -11,5 +11,4 @@ const badgeSchema = mongoose.Schema({
 });
 
 const Schema = mongoose.model('Badge', badgeSchema);
-
-module.exports = Schema;
+export default Schema;

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 /**
  * This is used only for experimental purpose!
@@ -33,9 +33,9 @@ userAnswerSchema.statics.createNew = async function createNew(
     const answer = new UserAnswer({cardDelay: delay, userId, isSuccessful, answerDelay});
     await answer.save();
     return answer;
-}
+};
 
 
 const UserAnswer = mongoose.model('UserAnswer', userAnswerSchema);
 
-module.exports = UserAnswer;
+export default UserAnswer;

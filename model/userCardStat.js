@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 /**
  * Contains some statistic data about the user's experience
@@ -87,8 +87,8 @@ userCardStatsSchema.statics.createUserCardStat = async function createUserCardSt
   }
 
   await card.save();
-}
+};
 
 const UserCardStat = mongoose.model('UserCardStats', userCardStatsSchema);
 
-module.exports = UserCardStat;
+export default UserCardStat;

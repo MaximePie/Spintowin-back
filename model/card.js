@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const {intervals} = require("../data/cards");
+import mongoose from 'mongoose'
+import {intervals} from "../data/cards.js"
 
 const cardSchema = mongoose.Schema({
   question: {type: String},
@@ -35,4 +35,4 @@ cardSchema.methods.increaseDelay = function () {
 
 const Card = mongoose.model('Card', cardSchema);
 
-module.exports = Card;
+export default Card;

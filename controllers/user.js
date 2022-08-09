@@ -1,14 +1,11 @@
-const User = require('../model/user');
-const UserWrongAnswer = require("../model/stats/userWrongAnswer");
-const bcrypt = require('bcryptjs');
-var jwt = require('jsonwebtoken');
+import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
+import Joi from 'joi'
+import mongoose from "mongoose"
 
-// Validation
+import User from '../model/user/user.js';
+import UserAnswer from "../model/stats/userAnswer.js"
 
-const Joi = require('joi');
-const mongoose = require("mongoose");
-const UserAnswer = require("../model/stats/userAnswer");
-const UserInterval = require("../model/userInterval");
 
 const validationSchema = Joi.object({
   username: Joi.string().min(6).required(),
@@ -52,7 +49,6 @@ async function create(request, response) {
   });
   try {
     user.save().then((user) => {
-      UserInterval.createForUser(user._id);
 
       const token = jwt.sign({
           _id: user._id,
@@ -97,16 +93,12 @@ async function login(request, response) {
   }
 }
 
-module.exports.connectedUser = async function (request, response) {
+async function connectedUser(request, response) {
   const user = await User.findById(request.user._id);
-  const intervals = await UserInterval.find({
-    userId: user._id,
-  });
   return response.json({
     ...user._doc,
-    intervals,
   });
-};
+}
 
 /**
  * Route : /users/
@@ -114,10 +106,10 @@ module.exports.connectedUser = async function (request, response) {
  * @param response
  * @returns A complete list of the users of the app
  */
-module.exports.index = async function (request, response) {
+async function index(request, response) {
   const users = await User.find({});
   await response.json({users})
-};
+}
 
 /**
  * Route : /users/connectedUser/scales
@@ -126,11 +118,11 @@ module.exports.index = async function (request, response) {
  * @param request
  * @param response
  */
-module.exports.scales = async function (request, response) {
+async function scales(request, response) {
   const user = await User.findById(request.user._id);
   const results = await user.calculateMemorizedData();
   return response.json(results);
-};
+}
 
 /**
  * Returns the wrong answer entities for the given user
@@ -139,7 +131,7 @@ module.exports.scales = async function (request, response) {
  * @param response
  * @returns {Promise<void>}
  */
-module.exports.answers = async function (request, response) {
+async function answers(request, response) {
   const userId = mongoose.Types.ObjectId(request.user._id);
 
   const answerDelays = await UserAnswer.aggregate(([
@@ -173,7 +165,7 @@ module.exports.answers = async function (request, response) {
   });
 
   response.json({answersStats});
-};
+}
 
 
 /**
@@ -186,22 +178,22 @@ module.exports.answers = async function (request, response) {
  * @param request
  * @param response
  */
-module.exports.progress = async function (request, response) {
+async function progress(request, response) {
   const user = await User.findById(request.user._id);
   if (user) {
     const results = await user.calculateProgressData();
     return response.json(results);
   }
   return null;
-};
+}
 
-module.exports.badges = async function (request, response) {
+async function badges(request, response) {
   const user = await User.findById(request.user);
   const badges = await user.badges();
   return response.json(badges)
-};
+}
 
-module.exports.updatePreferences = async function (request, response) {
+async function updatePreferences(request, response) {
 
   const {
     hasCategoriesDisplayed,
@@ -209,7 +201,7 @@ module.exports.updatePreferences = async function (request, response) {
     changedInterval
   } = request.body;
 
-  const targetInterval = UserInterval.findByIdAndUpdate(changedInterval._id, changedInterval);
+  // const targetInterval = UserInterval.findByIdAndUpdate(changedInterval._id, changedInterval);
 
 
   await User.findByIdAndUpdate(request.user, {
@@ -217,8 +209,8 @@ module.exports.updatePreferences = async function (request, response) {
     hasStreakNotifications
   });
 
-  response.json({user: await User.findById(request.user), targetInterval});
-};
+  response.json({user: await User.findById(request.user)});
+}
 
 /**
  * Checks if the second parameter matches the first one
@@ -239,5 +231,16 @@ function emailExists(email) {
   });
 }
 
-module.exports.create = create;
-module.exports.login = login;
+const userController = {
+  connectedUser,
+  index,
+  scales,
+  answers,
+  progress,
+  badges,
+  updatePreferences,
+  create,
+  login,
+};
+
+export default userController

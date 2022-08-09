@@ -1,9 +1,8 @@
-const UserCard = require('../model/userCard.js');
-const Card = require('../model/card');
-const User = require('../model/user');
-const UserAnswer = require('../model/stats/userAnswer');
-const {displayedCardsLimit} = require("../data/config");
-const Category = require("../model/category");
+import UserCard from'../model/userCard.js'
+import Card from'../model/card.js'
+import User from'../model/user/user.js'
+import UserAnswer from'../model/stats/userAnswer.js'
+import {displayedCardsLimit} from"../data/config.js"
 
 const success = 200;
 const error = {
@@ -17,7 +16,7 @@ const error = {
  * @param response
  * @returns The name of the deleted Card
  */
-module.exports.resorb = async function resorb(request, response) {
+async function resorb(request, response) {
   const {userCardId} = request.params;
   const deletedCard = await UserCard.findById(userCardId);
 
@@ -26,7 +25,7 @@ module.exports.resorb = async function resorb(request, response) {
   });
 
   response.status(success).json(deletedCard);
-};
+}
 
 /**
  * Absorb all the cards received in the body
@@ -34,7 +33,7 @@ module.exports.resorb = async function resorb(request, response) {
  * @param response
  * @returns {Promise<void>}
  */
-module.exports.absorbMany = async function absorbMany(request, response) {
+async function absorbMany(request, response) {
   const user = request.user;
   const userId = user._id;
   const {cardsIds} = request.body;
@@ -48,7 +47,7 @@ module.exports.absorbMany = async function absorbMany(request, response) {
     user: userId,
     newUserCards
   });
-};
+}
 
 /**
  * Absorbs the card received as a parameter and adds
@@ -75,7 +74,7 @@ async function absorbCard(cardId, userId) {
  * @param response
  * @returns the created userCard
  */
-module.exports.absorb = async function absorb(request, response) {
+async function absorb(request, response) {
   const user = request.user;
   const cardId = request.params.id;
   const userId = user._id;
@@ -86,7 +85,7 @@ module.exports.absorb = async function absorb(request, response) {
     cardId,
     createdUserCard
   });
-};
+}
 
 /**
  * Returns the first card in the review list
@@ -95,7 +94,7 @@ module.exports.absorb = async function absorb(request, response) {
  * @param response
  * @returns {Promise<void>}
  */
-module.exports.reviewOne = async function reviewOne(request, response) {
+async function reviewOne(request, response) {
   const user = await User.findById(request.user._id);
 
   const {categories} = request.body;
@@ -110,7 +109,7 @@ module.exports.reviewOne = async function reviewOne(request, response) {
   else {
     response.status(error.notFound).json({message: "La carte n'existe pas"});
   }
-};
+}
 
 /**
  * Returs the displayedCardsLimit amount of cards to the user.
@@ -124,7 +123,7 @@ module.exports.reviewOne = async function reviewOne(request, response) {
  * @param response
  * @returns {Promise<void>}
  */
-module.exports.train = async function train(request, response) {
+async function train(request, response) {
   /**
    * @type {User}
    */
@@ -133,7 +132,7 @@ module.exports.train = async function train(request, response) {
   if (!user) {
     throw new Error("User not found");
   }
-  const reviewCards = await user.reviewQuestions().limit(displayedCardsLimit);
+  const reviewCards = await user.reviewQuestions();
 
   // Merging properties
   const cardsList = reviewCards.map(userCard => {
@@ -158,25 +157,7 @@ module.exports.train = async function train(request, response) {
     cardsWithoutImage,
     remainingCards: await user.remainingQuestionsCount(),
   })
-};
-
-/**
- * Update the UserCard
- *  update delay according to answer state
- *  update nextQuestionAt field
- *   True : Increase
- *   False : Reset
- *
- * Update the User
- *  UpdateCardForUser
- *
- * @param request
- * @param response
- * @return {Promise<void>}
- */
-module.exports.updateV2 = async function update (request, response) {
-
-};
+}
 
 
 /**
@@ -186,7 +167,7 @@ module.exports.updateV2 = async function update (request, response) {
  * @param response
  * @returns {Promise<any>}
  */
-module.exports.update = async function update(request, response) {
+async function update(request, response) {
 
   const {newDelay, isMemorized, answerTime: answerDelay, isFromReviewPage} = request.body;
   if (!newDelay && newDelay !== 0) {
@@ -223,7 +204,7 @@ module.exports.update = async function update(request, response) {
 
   await card.save();
   return response.json({message: "OK"});
-};
+}
 
 
 /**
@@ -233,7 +214,7 @@ module.exports.update = async function update(request, response) {
  * @param response
  * @returns {Promise<void>}
  */
-module.exports.list = async function list(request, response) {
+async function list(request, response) {
 
   const userCards = await UserCard.find({userId: request.params._id})
     .select('cardId -_id');
@@ -253,9 +234,9 @@ module.exports.list = async function list(request, response) {
   );
 
   await response.json({cards: formatedCards,})
-};
+}
 
-module.exports.transfert = async function transfert(request, response) {
+async function transfert(request, response) {
   await UserCard.deleteMany({});
   let createdCards = 0;
   const userCardsToBeTransfered = await Card.find({
@@ -273,36 +254,17 @@ module.exports.transfert = async function transfert(request, response) {
     createdCards++;
   });
   await response.json({userCardsToBeTransfered});
+}
+
+const userController = {
+  absorb,
+  absorbMany,
+  reviewOne,
+  train,
+  update,
+  list,
+  transfert,
+  resorb,
 };
 
-/**
- * Attaches a category to a userCard
- * Route : /userCards/categories/add/:_id
- * @param request
- * @param response
- * @return {Promise<void>}
- */
-module.exports.addCategory = async function (request, response) {
-  const {_id} = request.params;
-  const {categoryIdentifier} = request.body;
-
-  const userCard = await UserCard.findById(_id);
-  if (userCard) {
-    const category = await Category.findOne({title: categoryIdentifier});
-    if (category) {
-      userCard.categoryId = category._id;
-      response.json({
-        code: success,
-      })
-    }
-    else {
-      response.json({
-        message: "Category not found",
-        code: 500,
-      })
-    }
-  }
-  else {
-    response.json({message: "User card not found", code: 500})
-  }
-};
+export default userController

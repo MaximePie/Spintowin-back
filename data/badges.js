@@ -251,9 +251,9 @@ const veryLongTermBadges = [
     "requiredAmount": 5000,
     "level": 7,
   },
-]
+];
 
-module.exports.badges = [
+export const badges = [
   ...soifDeSavoirBadges,
   ...bourrageDeCraneBadges,
   ...revisionsDurgenceBadges,

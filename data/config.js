@@ -1,5 +1,5 @@
-module.exports.requiredExpForNextLevel = function (currentLevel) {
+export function requiredExpForNextLevel(currentLevel) {
   return (500 * Math.pow(currentLevel, 2)) - (500 * currentLevel)
 }
 
-module.exports.displayedCardsLimit = 200;
+export const displayedCardsLimit = 200;

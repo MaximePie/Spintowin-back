@@ -1,6 +1,6 @@
-const jwt = require('jsonwebtoken');
+import jwt from 'jsonwebtoken'
 
-module.exports = function(request, response, next) {
+export default function(request, response, next) {
   const token = request.header('auth-token');
   if (!token) {
     return response.status(403).json({

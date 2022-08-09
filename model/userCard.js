@@ -1,6 +1,7 @@
-const mongoose = require('mongoose');
-const Card = require("./card");
-const Category = require("./category");
+import mongoose from 'mongoose'
+
+import Card from "./card.js"
+import Category from "./category.js"
 
 const userCardSchema = mongoose.Schema({
   userId: {
@@ -43,4 +44,4 @@ userCardSchema.methods.formatted = async function (user) {
 
 const UserCard = mongoose.model('userCard', userCardSchema);
 
-module.exports = UserCard;
+export default UserCard;

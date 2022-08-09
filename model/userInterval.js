@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const User = require("./user");
+const User = require("./user/user");
 const {intervals} = require("../data/cards");
 
 const userIntervalSchema = mongoose.Schema({

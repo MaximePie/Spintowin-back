@@ -2,7 +2,7 @@
 /**
  * Represents the possible repetition intervals in seconds
  */
-const intervals = [
+export const intervals = [
   0,
   5,
   13,
@@ -35,12 +35,12 @@ const intervals = [
   370 * 24 * 60 * 60, //
 ];
 
-module.exports.startedInterval = intervals[0];
-module.exports.minuteInterval = intervals[5];
-module.exports.hourInterval = intervals[13];
-module.exports.dayInterval = intervals[17];
-module.exports.weekInterval = intervals[21];
-module.exports.monthInterval = intervals[24];
+export const startedInterval = intervals[0];
+export const minuteInterval = intervals[5];
+export const hourInterval = intervals[13];
+export const dayInterval = intervals[17];
+export const weekInterval = intervals[21];
+export const monthInterval = intervals[24];
 
 
 
@@ -90,7 +90,7 @@ const cards = [
 ]
 */
 
-const cards = [
+export const cards = [
 
 
   {question: "erscheint", answer: "apparaît",}, {
@@ -1442,6 +1442,3 @@ const cards = [
   }, {question: "속도", answer: "la vitesse",}
 ];
 
-
-module.exports.cards = cards;
-module.exports.intervals = intervals;

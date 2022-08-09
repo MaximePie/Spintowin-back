@@ -1,19 +1,17 @@
+import fs from "fs"
 
-const Card = require('../model/card');
-const UserCard = require('../model/userCard');
-const User = require('../model/user');
-const UserWrongAnswer = require("../model/stats/userWrongAnswer");
-const {cards} = require('../data/cards');
-const fs = require("fs");
-const mongoose = require("mongoose");
+import Card from '../model/card.js'
+import UserCard from '../model/userCard.js'
+import User from '../model/user/user.js'
+import {cards} from '../data/cards.js'
 
-module.exports.delete = async function deleteCard(request, response) {
+async function deleteCard(request, response) {
   const deletedCard = await Card.deleteOne({_id: request.params.id});
   await UserCard.deleteOne({cardId: request.params.id});
   await response.status(200).json(deletedCard)
-};
+}
 
-module.exports.edit = async function editCard(request, response) {
+async function editCard(request, response) {
   const {id} = request.params;
   const {question, answer } = request.body;
   const card = await Card.findById(id);
@@ -30,7 +28,7 @@ module.exports.edit = async function editCard(request, response) {
     await card.save();
   }
   response.status(200).json(card)
-};
+}
 
 
 /**
@@ -89,10 +87,10 @@ function create(request, response) {
       errors.push('Erreur, il faut un answer');
     }
 
-    if (!errors.length) {
-      createCard(question, answer, user, response, cardImage, category);
-    } else {
+    if (errors.length) {
       response.status(400).json({message: errors});
+    } else {
+      createCard(question, answer, user, response, cardImage, category);
     }
   } else {
     response.status(404).json({message: 'Aucun body trouvé'});
@@ -212,9 +210,14 @@ async function calculateWorkInProgress() {
   }
 }
 
+const cardsController = {
+  deleteCard,
+  editCard,
+  getOne,
+  create,
+  generate,
+  deleteAll,
+  stats,
+}
 
-module.exports.getOne = getOne;
-module.exports.create = create;
-module.exports.generate = generate;
-module.exports.deleteAll = deleteAll;
-module.exports.stats = stats;
+export default cardsController;

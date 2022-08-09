@@ -1,13 +1,14 @@
-const {cards, intervals} = require('../data/cards');
-const {badges} = require('../data/badges');
-const bcrypt = require('bcryptjs');
-const User = require('../model/user');
-const Card = require('../model/card');
-const UserCardStat = require('../model/userCardStat');
-const Badge = require('../model/badge');
+import bcrypt from 'bcryptjs'
+
+import {cards, intervals} from '../data/cards.js'
+import {badges} from '../data/badges.js'
+import User from '../model/user/user.js'
+import Card from '../model/card.js'
+import UserCardStat from '../model/userCardStat.js'
+import Badge from '../model/badge.js'
 
 
-module.exports.seed = async function (request, response) {
+async function seed(request, response) {
 
   await User.deleteMany({});
   await Card.deleteMany({});
@@ -58,4 +59,8 @@ module.exports.seed = async function (request, response) {
     userCards: await UserCardStat.find(),
     badges: await Badge.find(),
   });
+}
+
+export default {
+  seed
 }

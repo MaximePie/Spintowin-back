@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const Badge = require('./badge');
+import mongoose from 'mongoose'
+import Badge from './badge.js'
 
 const userBadgeSchema = mongoose.Schema({
   userId: {
@@ -30,4 +30,4 @@ userBadgeSchema.statics = {
 
 const UserBadge = mongoose.model('UserBadge', userBadgeSchema);
 
-module.exports = UserBadge;
+export default UserBadge;

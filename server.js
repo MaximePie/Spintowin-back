@@ -1,10 +1,12 @@
-require('dotenv').config();
-const express = require('express');
+import 'dotenv/config';
+import express from 'express'
+import mongoose from 'mongoose'
+import {url} from './database/databaseService.js'
+import bodyParser from "body-parser"
+import cors from "cors"
+import routes from './routes/routes.js'
+
 const app = express();
-const mongoose = require('mongoose');
-const {url} = require('./database/databaseService');
-const bodyParser = require("body-parser");
-const cors = require("cors");
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -18,7 +20,6 @@ mongoose.connect(url,
 
 
 // Importing Routes
-const routes = require('./routes/routes');
 app.use('/', routes);
 
 const defaultPort = 4001;
