@@ -160,7 +160,7 @@ async function answers(request, response) {
     return {
       delay,
       delayAverage,
-      successfulAnswersRate: Math.round(succesfulAnswers / total * 100)
+      successfulAnswersRate: Math.round(succesfulAnswers / total * 10000) / 100
     }
   });
 

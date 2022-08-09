@@ -201,7 +201,7 @@ async function update(request, response) {
   } else {
     card.currentSuccessfulAnswerStreak = 0;
   }
-  UserAnswer.createNew(card.currentDelay, userId, wasLastAnswerSuccessful, isFromReviewPage && answerDelay);
+    UserAnswer.createNew(card.currentDelay, userId, wasLastAnswerSuccessful, isFromReviewPage && answerDelay);
 
   card.currentDelay = newDelay;
   card.nextQuestionAt = nextQuestionAt.valueOf();

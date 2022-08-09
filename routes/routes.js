@@ -9,6 +9,7 @@ import categoriesController from '../controllers/category.js'
 import seeder from '../database/seeder.js'
 import verify from '../routes/verifyToken.js'
 import verifyDevelopper from '../routes/verifyDevelopper.js'
+import UserAnswer from "../model/stats/userAnswer.js";
 
 const router = express.Router();
 const upload = multer({dest: './uploads/'});
@@ -20,6 +21,7 @@ const upload = multer({dest: './uploads/'});
 router.post('/users/register/', userController.create);
 router.post('/users/login/', userController.login);
 router.get('/users/', userController.index);
+
 
 // Verified routes
 router.get('/users/connectedUser/', verify, userController.connectedUser);
