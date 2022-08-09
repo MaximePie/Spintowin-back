@@ -198,18 +198,19 @@ async function updatePreferences(request, response) {
   const {
     hasCategoriesDisplayed,
     hasStreakNotifications,
-    changedInterval
+    intervals
   } = request.body;
 
-  // const targetInterval = UserInterval.findByIdAndUpdate(changedInterval._id, changedInterval);
 
-
-  await User.findByIdAndUpdate(request.user, {
+  const user = await User.findByIdAndUpdate(request.user, {
     hasCategoriesDisplayed,
-    hasStreakNotifications
+    hasStreakNotifications,
+    intervals,
+  }, {
+    new: true,
   });
 
-  response.json({user: await User.findById(request.user)});
+  response.json({user});
 }
 
 /**

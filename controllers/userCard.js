@@ -154,7 +154,6 @@ async function train(request, response) {
 
   response.status(success).json({
     cards: returnedCards,
-    cardsWithoutImage,
     remainingCards: await user.remainingQuestionsCount(),
   })
 }
