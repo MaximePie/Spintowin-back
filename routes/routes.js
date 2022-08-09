@@ -9,7 +9,8 @@ import categoriesController from '../controllers/category.js'
 import seeder from '../database/seeder.js'
 import verify from '../routes/verifyToken.js'
 import verifyDevelopper from '../routes/verifyDevelopper.js'
-import UserAnswer from "../model/stats/userAnswer.js";
+import UserCard from "../model/userCard.js";
+import Card from "../model/card.js";
 
 const router = express.Router();
 const upload = multer({dest: './uploads/'});
@@ -22,6 +23,32 @@ router.post('/users/register/', userController.create);
 router.post('/users/login/', userController.login);
 router.get('/users/', userController.index);
 
+router.get('/check', async (request, response) => {
+
+})
+router.get('/clean', async (request, response) => {
+  const cards = await UserCard.find().populate({
+    path: 'cardId',
+    match: {
+      cardId: null
+    }
+  });
+
+  cards.forEach(card => card.delete());
+  response.json({
+    userCards : await UserCard.find().populate({
+      path: 'cardId',
+      match: {
+        cardId: null
+      }
+    })
+    // card:  await UserCard.find().populate('cardId').deleteMany(
+    //   {
+    //     cardId: null
+    //   }
+    // ),
+  })
+})
 
 // Verified routes
 router.get('/users/connectedUser/', verify, userController.connectedUser);

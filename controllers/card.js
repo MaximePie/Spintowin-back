@@ -1,4 +1,6 @@
 import fs from "fs"
+import AWS from 'aws-sdk'
+import {s3} from "../server.js";
 
 import Card from '../model/card.js'
 import UserCard from '../model/userCard.js'
@@ -13,7 +15,7 @@ async function deleteCard(request, response) {
 
 async function editCard(request, response) {
   const {id} = request.params;
-  const {question, answer } = request.body;
+  const {question, answer} = request.body;
   const card = await Card.findById(id);
 
   if (question) {
@@ -65,19 +67,21 @@ function deleteAll(request, response) {
  * @param request
  * @param response
  */
-function create(request, response) {
+async function create(request, response) {
   const {user} = request;
   if (request.body) {
     let errors = [];
     const {question, answer, category} = request.body;
     const file = request.file;
-    let cardImage = undefined;
+    let uploadedImage = undefined;
     if (file) {
-      const {path, mimetype} = request.file;
-      cardImage = {
-        data: fs.readFileSync(path),
-        contentType: mimetype
-      }
+      const {path} = request.file;
+      const blob = fs.readFileSync(path);
+      uploadedImage = await s3.upload({
+        Bucket: process.env.AWS_S3_BUCKET_NAME,
+        Key: request.file.filename,
+        Body: blob,
+      }).promise()
     }
     if (!question && !file) {
       errors.push('Erreur, il faut un question');
@@ -90,7 +94,7 @@ function create(request, response) {
     if (errors.length) {
       response.status(400).json({message: errors});
     } else {
-      createCard(question, answer, user, response, cardImage, category);
+      createCard(question, answer, user, response, uploadedImage, category);
     }
   } else {
     response.status(404).json({message: 'Aucun body trouvé'});
@@ -107,9 +111,9 @@ async function getOne(request, response) {
       $lt: lastCard.nextQuestionAt,
     },
   })
-  .sort({
-    nextQuestionAt: -1,
-  });
+    .sort({
+      nextQuestionAt: -1,
+    });
 
   response.status(200).json({
     card,
@@ -128,11 +132,10 @@ async function getOne(request, response) {
  */
 function createCard(question, answer, user, response = undefined, image = undefined, category = undefined) {
   const newDate = new Date();
-
   Card.create({
     question,
     answer,
-    image: image || null,
+    image: image?.location || null,
     user: user._id,
   }, async (error, data) => {
     // Update the updatedUser list of cards

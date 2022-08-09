@@ -4,10 +4,7 @@ import {intervals} from "../data/cards.js"
 const cardSchema = mongoose.Schema({
   question: {type: String},
   answer: {type: String, required: true},
-  image: {
-    data: Buffer,
-    contentType: String,
-  },
+  image: String,
   currentDelay: {type: Number, default: 0},
   currentSuccessfulAnswerStreak: {type: Number, default: 0},
   nextQuestionAt: {type: Date},

@@ -137,32 +137,47 @@ async function train(request, response) {
    * @type {User}
    */
 
+  console.time("train");
+  console.time("user");
+
   const user = await User.findById(request.user._id);
   if (!user) {
     throw new Error("User not found");
   }
+  console.timeEnd("user");
+  console.time("questions list");
   const reviewCards = await user.reviewQuestions();
+  console.timeEnd("questions list");
+
+  console.time("Merging");
 
   // Merging properties
   const cardsList = reviewCards.map(userCard => {
     const {cardId: card, categoryId: category} = userCard;
+    console.log(userCard);
     return {
       ...userCard._doc,
       cardId: card._id,
       isOwnerOfCard: user._id.toString() === userCard.userId.toString(),
       answer: card.answer,
       question: card.question || null,
-      image: card.image.data ? card.image : null,
+      image: card.image || null,
       category: category?.title
     }
   });
+  console.timeEnd("Merging");
 
-  const cardsWithoutImage = cardsList.filter(({image}) => !image);
+  // const cardsWithoutImage = cardsList.filter(({image}) => !image);
+  const cardsWithImage = cardsList.filter(({image}) => !!image);
 
-  const returnedCards = 0 < cardsWithoutImage.length ? cardsWithoutImage : cardsList.slice(0, 3);
+  // const returnedCards = 0 < cardsWithoutImage.length ? cardsWithoutImage : cardsList.slice(0, 3);
+
+  console.timeEnd("train");
 
   response.status(success).json({
-    cards: returnedCards,
+    cards: cardsList,
+    // cards: returnedCards,
+    cardsWithImage,
     remainingCards: await user.remainingQuestionsCount(),
   })
 }
@@ -201,7 +216,7 @@ async function update(request, response) {
   } else {
     card.currentSuccessfulAnswerStreak = 0;
   }
-    UserAnswer.createNew(card.currentDelay, userId, wasLastAnswerSuccessful, isFromReviewPage && answerDelay);
+  UserAnswer.createNew(card.currentDelay, userId, wasLastAnswerSuccessful, isFromReviewPage && answerDelay);
 
   card.currentDelay = newDelay;
   card.nextQuestionAt = nextQuestionAt.valueOf();
@@ -255,9 +270,9 @@ async function transfert(request, response) {
     const createdCard = await UserCard.create({
       userId: request.params._id,
       cardId: card._id,
-      currentDelay: card.currentDelay,
+      currentDelay: 0,
       currentSuccessfulAnswerStreak: card.currentSuccessfulAnswerStreak,
-      nextQuestionAt: card.nextQuestionAt,
+      nextQuestionAt: Date.now(),
     });
     createdCards++;
   });
