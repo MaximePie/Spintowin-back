@@ -1,8 +1,8 @@
-import UserCard from'../model/userCard.js'
-import Card from'../model/card.js'
-import User from'../model/user/user.js'
-import UserAnswer from'../model/stats/userAnswer.js'
-import {displayedCardsLimit} from"../data/config.js"
+import UserCard from '../model/userCard.js'
+import Card from '../model/card.js'
+import User from '../model/user/user.js'
+import UserAnswer from '../model/stats/userAnswer.js'
+import {displayedCardsLimit} from "../data/config.js"
 
 const success = 200;
 const error = {
@@ -99,14 +99,23 @@ async function reviewOne(request, response) {
 
   const {categories} = request.body;
 
-  const userCard = await user.reviewQuestions(categories).findOne();
-  if (userCard) {
+  const userCards = await user.reviewQuestions(categories);
+  if (userCards) {
+    const userCard = userCards[0];
+    const {cardId: card, userId} = userCard;
     // Merging properties
-    const card = await userCard.formatted(user);
+    const result = {
+      ...userCard._doc,
+      cardId: card._id,
+      isOwnerOfCard: request.user._id.toString() === userId.toString(),
+      answer: card.answer,
+      question: card.question || null,
+      image: card.image.data ? card.image : null,
+      category: card.categoryId?.title
+    };
     const remainingCards = await user.remainingQuestionsCount();
-    response.status(success).json({card, remainingCards,})
-  }
-  else {
+    response.status(success).json({card: result, remainingCards})
+  } else {
     response.status(error.notFound).json({message: "La carte n'existe pas"});
   }
 }
