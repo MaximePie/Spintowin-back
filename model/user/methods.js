@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import moment from "moment";
 import {displayedCardsLimit, requiredExpForNextLevel} from "../../data/config.js";
 
-import Card from '../card.js'
+import Card from '../Card/card.js'
 import UserBadge from '../userBadge.js'
 import Badge from '../badge.js'
 import UserCardStat from '../userCardStat.js'
@@ -74,10 +74,10 @@ export async function reviewQuestions(categories = []) {
       currentDelay: -1,
       nextQuestionAt: -1,
     })
+    .limit(displayedCardsLimit)
     .populate('cardId')
     .populate('categoryId')
     .find()
-    .limit(displayedCardsLimit);
 }
 
 export async function calculateMemorizedData() {

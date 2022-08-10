@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs'
 import {cards, intervals} from '../data/cards.js'
 import {badges} from '../data/badges.js'
 import User from '../model/user/user.js'
-import Card from '../model/card.js'
+import Card from '../model/Card/card.js'
 import UserCardStat from '../model/userCardStat.js'
 import Badge from '../model/badge.js'
 

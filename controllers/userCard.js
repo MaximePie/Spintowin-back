@@ -1,5 +1,5 @@
 import UserCard from '../model/userCard.js'
-import Card from '../model/card.js'
+import Card from '../model/Card/card.js'
 import User from '../model/user/user.js'
 import UserAnswer from '../model/stats/userAnswer.js'
 import {displayedCardsLimit} from "../data/config.js"
@@ -110,7 +110,7 @@ async function reviewOne(request, response) {
       isOwnerOfCard: request.user._id.toString() === userId.toString(),
       answer: card.answer,
       question: card.question || null,
-      image: card.image.data ? card.image : null,
+      image: card.image || null,
       category: card.categoryId?.title
     };
     const remainingCards = await user.remainingQuestionsCount();
@@ -154,7 +154,6 @@ async function train(request, response) {
   // Merging properties
   const cardsList = reviewCards.map(userCard => {
     const {cardId: card, categoryId: category} = userCard;
-    console.log(userCard);
     return {
       ...userCard._doc,
       cardId: card._id,

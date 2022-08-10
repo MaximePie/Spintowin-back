@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
-import {intervals} from "../data/cards.js"
+import {intervals} from "../../data/cards.js"
+import {onRemove} from "./hooks.js";
 
 const cardSchema = mongoose.Schema({
   question: {type: String},
@@ -28,6 +29,8 @@ cardSchema.methods.increaseDelay = function () {
   }
   return this.save();
 };
+
+cardSchema.pre('remove', onRemove);
 
 
 const Card = mongoose.model('Card', cardSchema);

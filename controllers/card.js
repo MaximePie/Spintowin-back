@@ -2,7 +2,7 @@ import fs from "fs"
 import AWS from 'aws-sdk'
 import {s3} from "../server.js";
 
-import Card from '../model/card.js'
+import Card from '../model/Card/card.js'
 import UserCard from '../model/userCard.js'
 import User from '../model/user/user.js'
 import {cards} from '../data/cards.js'
@@ -135,7 +135,7 @@ function createCard(question, answer, user, response = undefined, image = undefi
   Card.create({
     question,
     answer,
-    image: image?.location || null,
+    image: image?.Location || null,
     user: user._id,
   }, async (error, data) => {
     // Update the updatedUser list of cards

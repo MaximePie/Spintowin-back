@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 
-import Card from "./card.js"
+import Card from "./Card/card.js"
 import Category from "./category.js"
 
 const userCardSchema = mongoose.Schema({
