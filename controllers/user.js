@@ -46,6 +46,7 @@ async function create(request, response) {
     email,
     password: hashedPassword,
     hasAdsEnabled,
+    role: "user",
   });
   try {
     user.save().then((user) => {

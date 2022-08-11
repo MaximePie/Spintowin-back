@@ -18,6 +18,10 @@ export const schema = {
     default: false,
     required: false,
   },
+  role: {
+    type: String, // "user" | "admin"
+    default: "user"
+  },
   password: {
     type: String,
     required: true,

@@ -15,6 +15,7 @@ import {
 import {schema} from "./schema.js";
 
 import mongoose from 'mongoose';
+import UserCard from "../userCard.js";
 
 const userSchema = mongoose.Schema(schema);
 userSchema.methods = {
@@ -38,6 +39,28 @@ userSchema.statics.UpdateCardForUser = async function (userId, card) {
   await user.updateExperience(card);
   user.updateProgress(card);
 }
+
+userSchema.post('findOneAndUpdate', function (next) {
+  // ...
+  const intervals = this._update['$set'].intervals;
+  if (intervals) { // If intervals changed
+    const possibleIntervals = intervals.filter(({isEnabled}) => isEnabled).map(({value}) => value);
+
+    // Update all the UserCards
+    const userCards = UserCard.find({userId: this._id});
+
+    userCards.forEach(userCard => {
+      const closestSuperiorDelay = possibleIntervals
+        .find((element, index) => {
+            return (
+              card.currentDelay <= possibleIntervals[index]
+              && card.currentDelay > (possibleIntervals[index - 1] || 0)
+            )
+          }
+        );
+    })
+  }
+});
 
 const User = mongoose.model('User', userSchema);
 
