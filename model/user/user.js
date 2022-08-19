@@ -1,16 +1,16 @@
 import {
+  badges,
   calculateMemorizedData,
   calculateProgressData,
-  remainingQuestionsCount,
   checkAchievements,
   checkLastActivity,
-  badges,
+  currentProgressForBadge,
   gainLevel,
   initializeIntervals,
+  remainingQuestionsCount,
+  reviewQuestions,
   updateExperience,
   updateProgress,
-  currentProgressForBadge,
-  reviewQuestions,
 } from "./methods.js";
 import {schema} from "./schema.js";
 
@@ -50,14 +50,15 @@ userSchema.post('findOneAndUpdate', function (next) {
     const userCards = UserCard.find({userId: this._id});
 
     userCards.forEach(userCard => {
-      const closestSuperiorDelay = possibleIntervals
+      userCard.currentDelay = possibleIntervals
         .find((element, index) => {
             return (
-              card.currentDelay <= possibleIntervals[index]
-              && card.currentDelay > (possibleIntervals[index - 1] || 0)
+              userCard.currentDelay <= possibleIntervals[index]
+              && userCard.currentDelay > (possibleIntervals[index - 1] || 0)
             )
           }
         );
+      userCard.save();
     })
   }
 });

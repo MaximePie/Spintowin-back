@@ -71,7 +71,7 @@ async function create(request, response) {
   const {user} = request;
   if (request.body) {
     let errors = [];
-    const {question, answer, category} = request.body;
+    const {question, answer, category, shouldCreateReverseQuestion} = request.body;
     const file = request.file;
     let uploadedImage = undefined;
     if (file) {
@@ -95,6 +95,12 @@ async function create(request, response) {
       response.status(400).json({message: errors});
     } else {
       createCard(question, answer, user, response, uploadedImage, category);
+
+      if ('true' === shouldCreateReverseQuestion && !file) {
+        createCard(answer, question, user, response, uploadedImage, category);
+      }
+
+      response.status(200).json({message: "La carte va être créée."})
     }
   } else {
     response.status(404).json({message: 'Aucun body trouvé'});
@@ -150,15 +156,6 @@ function createCard(question, answer, user, response = undefined, image = undefi
       nextQuestionAt: newDate.valueOf(),
       categoryId: category || null,
     });
-
-    if (response) {
-      response.status(200).json({
-        message: 'La card a bien été créée ! Woohoo !',
-        data,
-        error,
-        updatedUser,
-      });
-    }
   });
 }
 
