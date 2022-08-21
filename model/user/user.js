@@ -38,16 +38,14 @@ userSchema.statics.UpdateCardForUser = async function (userId, card) {
   const user = await User.findById(userId);
   await user.updateExperience(card);
   user.updateProgress(card);
-}
+};
 
-userSchema.post('findOneAndUpdate', function (next) {
+userSchema.pre('save', async function (next) {
   // ...
-  const intervals = this._update['$set'].intervals;
-  if (intervals) { // If intervals changed
-    const possibleIntervals = intervals.filter(({isEnabled}) => isEnabled).map(({value}) => value);
-
+  if (this.modifiedPaths().includes('intervals')) { // If intervals changed
+    const possibleIntervals = this.intervals.filter(({isEnabled}) => isEnabled).map(({value}) => value);
     // Update all the UserCards
-    const userCards = UserCard.find({userId: this._id});
+    const userCards = await UserCard.find({userId: this._id});
 
     userCards.forEach(userCard => {
       userCard.currentDelay = possibleIntervals
@@ -59,8 +57,10 @@ userSchema.post('findOneAndUpdate', function (next) {
           }
         );
       userCard.save();
-    })
+    });
+    return next();
   }
+  return next();
 });
 
 const User = mongoose.model('User', userSchema);

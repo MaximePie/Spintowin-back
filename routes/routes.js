@@ -9,13 +9,10 @@ import categoriesController from '../controllers/category.js'
 import seeder from '../database/seeder.js'
 import verify from '../routes/verifyToken.js'
 import verifyDevelopper from '../routes/verifyDevelopper.js'
-import User from "../model/user/user.js";
-import {intervals} from "../data/cards.js";
 
 
 const router = express.Router();
 const upload = multer({dest: './uploads/'});
-
 
 // Let's put all the routes here.
 // If the amount of routes is too big, create a folder and split the file, one file for each entity should do the work

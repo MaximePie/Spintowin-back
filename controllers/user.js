@@ -203,13 +203,15 @@ async function updatePreferences(request, response) {
   } = request.body;
 
 
-  const user = await User.findByIdAndUpdate(request.user, {
-    hasCategoriesDisplayed,
-    hasStreakNotifications,
-    intervals,
-  }, {
-    new: true,
-  });
+  const user = await User.findById(request.user);
+  const areIntervalsTheSame = intervals.every((val, idx) => val.isEnabled === user.intervals[idx].isEnabled);
+
+  user.hasCategoriesDisplayed = hasCategoriesDisplayed;
+  user.hasStreakNotifications = hasStreakNotifications;
+  if (areIntervalsTheSame) { // Used to detect if intervals have changed since that this is an array of objects
+    user.intervals = intervals;
+  }
+  await user.save();
 
   response.json({user});
 }
