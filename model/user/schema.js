@@ -48,6 +48,7 @@ export const schema = {
   // Has categories displayed
   hasCategoriesDisplayed: {type: Boolean, default: true},
   hasStreakNotifications: {type: Boolean, default: true},
+  hasSoundEnabled: {type: Boolean, default: true},
   intervals: [
     {
       value: Number,
