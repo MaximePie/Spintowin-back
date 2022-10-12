@@ -36,6 +36,7 @@ router.post('/users/connectedUser/preferences/update', verify, userController.up
 router.get('/cards/getOne', verify, cardsController.getOne);
 router.get('/cards/stats', verify, cardsController.stats);
 router.post('/cards/', verify, upload.single('file'), cardsController.create);
+router.post('/cards/upload/', verify, upload.single('file'), cardsController.bulkCreate);
 router.post('/cards/edit/:id', verify, cardsController.editCard);
 router.get('/cards/delete/:id', cardsController.deleteCard);
 router.get('/cards/deleteAll', verify, cardsController.deleteAll);

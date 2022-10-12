@@ -1,5 +1,4 @@
 import fs from "fs"
-import AWS from 'aws-sdk'
 import {s3} from "../server.js";
 
 import Card from '../model/Card/card.js'
@@ -105,6 +104,33 @@ async function create(request, response) {
   } else {
     response.status(404).json({message: 'Aucun body trouvé'});
   }
+}
+
+async function bulkCreate(request, response) {
+  const {user} = request;
+  let added = 0;
+  // read the csv file
+  const {file} = request;
+  const data = fs.readFileSync(file.path, 'utf8');
+  const lines = data.split('\r').map(line => {
+    // remove the \n and make an object with the question as a key and the answer as a value
+    const formatedAnswer = line.replace('\n', '').split(',');
+    return {
+      question: formatedAnswer[0],
+      answer: formatedAnswer[1],
+    }
+  });
+
+  lines.shift();
+  lines.forEach(line => {
+    // if quest and answer are not null
+    if (line.question && line.answer) {
+      createCard(line.question, line.answer, user);
+      added++;
+    }
+  });
+
+  response.json({added});
 }
 
 async function getOne(request, response) {
@@ -215,6 +241,7 @@ const cardsController = {
   editCard,
   getOne,
   create,
+  bulkCreate,
   generate,
   deleteAll,
   stats,
