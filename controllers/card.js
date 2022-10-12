@@ -1,20 +1,20 @@
 import fs from "fs"
-import {s3} from "../server.js";
+import { s3 } from "../server.js";
 
 import Card from '../model/Card/card.js'
 import UserCard from '../model/userCard.js'
 import User from '../model/user/user.js'
-import {cards} from '../data/cards.js'
+import { cards } from '../data/cards.js'
 
 async function deleteCard(request, response) {
-  const deletedCard = await Card.deleteOne({_id: request.params.id});
-  await UserCard.deleteOne({cardId: request.params.id});
+  const deletedCard = await Card.deleteOne({ _id: request.params.id });
+  await UserCard.deleteOne({ cardId: request.params.id });
   await response.status(200).json(deletedCard)
 }
 
 async function editCard(request, response) {
-  const {id} = request.params;
-  const {question, answer} = request.body;
+  const { id } = request.params;
+  const { question, answer } = request.body;
   const card = await Card.findById(id);
 
   if (question) {
@@ -44,7 +44,7 @@ function generate(request, response) {
     createCard(card.question, card.answer, user);
     added++;
   });
-  response.json({added});
+  response.json({ added });
 }
 
 /**
@@ -53,7 +53,7 @@ function generate(request, response) {
  */
 function deleteAll(request, response) {
   Card.deleteMany({
-    currentDelay: {$gte: 0},
+    currentDelay: { $gte: 0 },
   }, (error, results) => {
     response.json({
       results,
@@ -67,14 +67,14 @@ function deleteAll(request, response) {
  * @param response
  */
 async function create(request, response) {
-  const {user} = request;
+  const { user } = request;
   if (request.body) {
     let errors = [];
-    const {question, answer, category, shouldCreateReverseQuestion} = request.body;
+    const { question, answer, category, shouldCreateReverseQuestion } = request.body;
     const file = request.file;
     let uploadedImage = undefined;
     if (file) {
-      const {path} = request.file;
+      const { path } = request.file;
       const blob = fs.readFileSync(path);
       uploadedImage = await s3.upload({
         Bucket: process.env.AWS_S3_BUCKET_NAME,
@@ -91,7 +91,7 @@ async function create(request, response) {
     }
 
     if (errors.length) {
-      response.status(400).json({message: errors});
+      response.status(400).json({ message: errors });
     } else {
       createCard(question, answer, user, response, uploadedImage, category);
 
@@ -99,18 +99,18 @@ async function create(request, response) {
         createCard(answer, question, user, response, uploadedImage, category);
       }
 
-      response.status(200).json({message: "La carte va être créée."})
+      response.status(200).json({ message: "La carte va être créée." })
     }
   } else {
-    response.status(404).json({message: 'Aucun body trouvé'});
+    response.status(404).json({ message: 'Aucun body trouvé' });
   }
 }
 
 async function bulkCreate(request, response) {
-  const {user} = request;
+  const { user } = request;
   let added = 0;
   // read the csv file
-  const {file} = request;
+  const { file } = request;
   const data = fs.readFileSync(file.path, 'utf8');
   const lines = data.split('\r').map(line => {
     // remove the \n and make an object with the question as a key and the answer as a value
@@ -122,15 +122,18 @@ async function bulkCreate(request, response) {
   });
 
   lines.shift();
-  lines.forEach(line => {
-    // if quest and answer are not null
-    if (line.question && line.answer) {
-      createCard(line.question, line.answer, user);
-      added++;
-    }
-  });
+  await Promise.all(
+    lines.map(async ({ question, answer }) => {
+      // if quest and answer are not null
+      if (question && answer) {
+        await createCard(question, answer, user);
+        await createCard(answer, question, user);
+        added++;
+      }
+    })
+  );
 
-  response.json({added});
+  response.json({ added });
 }
 
 async function getOne(request, response) {
@@ -207,7 +210,7 @@ async function stats(request, response) {
  * Returns the total score of the user
  */
 async function calculateTotalScore() {
-  const filter = {$match: {currentDelay: {$gt: 0}}};
+  const filter = { $match: { currentDelay: { $gt: 0 } } };
   const accumulator = {
     $group: {
       _id: null,
@@ -224,7 +227,7 @@ async function calculateTotalScore() {
 async function calculateWorkInProgress() {
 
   const numberOfWorkinProgressCards = await Card.countDocuments({
-    currentDelay: {$gt: 0}
+    currentDelay: { $gt: 0 }
   });
   const totalCards = await Card.countDocuments();
 
