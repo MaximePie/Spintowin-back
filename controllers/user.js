@@ -49,7 +49,8 @@ async function create(request, response) {
     role: "user",
   });
   try {
-    user.save().then((user) => {
+    user.save().then(async (user) => {
+      await user.initializeIntervals();
 
       const token = jwt.sign({
           _id: user._id,

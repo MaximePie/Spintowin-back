@@ -100,7 +100,7 @@ async function reviewOne(request, response) {
   const {categories} = request.body;
 
   const userCards = await user.reviewQuestions(categories);
-  if (userCards) {
+  if (userCards?.length) {
     const userCard = userCards[0];
     const {cardId: card, userId} = userCard;
     // Merging properties

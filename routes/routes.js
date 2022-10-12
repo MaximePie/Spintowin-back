@@ -9,6 +9,9 @@ import categoriesController from '../controllers/category.js'
 import seeder from '../database/seeder.js'
 import verify from '../routes/verifyToken.js'
 import verifyDevelopper from '../routes/verifyDevelopper.js'
+import User from "../model/user/user.js";
+import Card from "../model/Card/card.js";
+import UserCard from "../model/userCard.js";
 
 
 const router = express.Router();
@@ -57,6 +60,18 @@ router.post('/userCards/categories', verify, categoriesController.createCategory
 // Admin cards
 router.post('/seed', verifyDevelopper, seeder.seed);
 router.post('/badge', verifyDevelopper, badgeController.create);
+router.get('/deleteCardsForUser/:_id', verifyDevelopper, async (request, response) => {
+  const user = await User.findById(request.params._id);
+  if (user) {
+    await Card.deleteMany({
+      user: user
+    })
+    await UserCard.deleteMany({
+      userId: user,
+    })
+    response.json({user});
+  }
+});
 
 
 export default router

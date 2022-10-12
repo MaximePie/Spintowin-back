@@ -111,29 +111,32 @@ async function bulkCreate(request, response) {
   let added = 0;
   // read the csv file
   const { file } = request;
-  const data = fs.readFileSync(file.path, 'utf8');
-  const lines = data.split('\r').map(line => {
-    // remove the \n and make an object with the question as a key and the answer as a value
-    const formatedAnswer = line.replace('\n', '').split(',');
-    return {
-      question: formatedAnswer[0],
-      answer: formatedAnswer[1],
-    }
-  });
-
-  lines.shift();
-  await Promise.all(
-    lines.map(async ({ question, answer }) => {
-      // if quest and answer are not null
-      if (question && answer) {
-        await createCard(question, answer, user);
-        await createCard(answer, question, user);
-        added++;
+  if (file) {
+    const data = fs.readFileSync(file.path, 'utf8');
+    const lines = data.split('\r').map(line => {
+      // remove the \n and make an object with the question as a key and the answer as a value
+      const formatedAnswer = line.replace('\n', '').split(',');
+      return {
+        question: formatedAnswer[0],
+        answer: formatedAnswer[1],
       }
-    })
-  );
+    });
+    const category = lines[0].question;
+    lines.shift();
+    await Promise.all(
+      lines.map(async ({ question, answer }) => {
+        // if quest and answer are not null
+        if (question && answer) {
+          await createCard(question, answer, user, undefined, undefined, category);
+          await createCard(answer, question, user, undefined, undefined, category);
+          added++;
+        }
+      })
+    );
 
-  response.json({ added });
+    response.json({ added });
+  }
+
 }
 
 async function getOne(request, response) {
@@ -167,6 +170,9 @@ async function getOne(request, response) {
  */
 function createCard(question, answer, user, response = undefined, image = undefined, category = undefined) {
   const newDate = new Date();
+
+  console.log(`Creating card with question ${question} and answer ${answer} and category ${category} for user ${user._id}`);
+
   Card.create({
     question,
     answer,

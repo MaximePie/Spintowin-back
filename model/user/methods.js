@@ -22,6 +22,7 @@ import UserCard from "../userCard.js"
  * Set interval for the user based on the defaults listed in /data/cards
  */
 export async function initializeIntervals() {
+  console.log("Initializing intervals");
   this.intervals = [];
   intervals.forEach(interval => {
     this.intervals.push({
