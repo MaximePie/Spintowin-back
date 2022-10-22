@@ -5,6 +5,8 @@ import mongoose from "mongoose"
 
 import User from '../model/user/user.js';
 import UserAnswer from "../model/stats/userAnswer.js"
+import moment from "moment";
+import { notStartedQuestionsCount, remainingQuestionsCount } from "../model/user/methods.js";
 
 
 const validationSchema = Joi.object({
@@ -19,7 +21,7 @@ const validationSchema = Joi.object({
  * @param response
  */
 async function create(request, response) {
-  const {username, email, password, hasAdsEnabled} = request.body;
+  const { username, email, password, hasAdsEnabled } = request.body;
   const userCredentials = {
     username,
     email,
@@ -70,9 +72,9 @@ async function create(request, response) {
 }
 
 async function login(request, response) {
-  const {email, password} = request.body;
+  const { email, password } = request.body;
   if (await emailExists(email)) {
-    const user = await User.findOne({email});
+    const user = await User.findOne({ email });
     if (await isPasswordValid(password, user.password)) {
       const token = jwt.sign({
           _id: user._id,
@@ -96,9 +98,17 @@ async function login(request, response) {
 }
 
 async function connectedUser(request, response) {
-  const user = await User.findById(request.user._id);
+  const userInBase = await User.findById(request.user._id);
+  const result = {
+    user: {
+      ...userInBase._doc,
+      remainingCards: await userInBase.notStartedQuestionsCount(),
+      remainingCardsOld: await userInBase.remainingQuestionsCount(),
+    }
+  };
+
   return response.json({
-    ...user._doc,
+    ...result.user
   });
 }
 
@@ -110,7 +120,7 @@ async function connectedUser(request, response) {
  */
 async function index(request, response) {
   const users = await User.find({});
-  await response.json({users})
+  await response.json({ users })
 }
 
 /**
@@ -138,16 +148,16 @@ async function answers(request, response) {
 
   const answerDelays = await UserAnswer.aggregate(([
     {
-      $match: {userId}
+      $match: { userId }
     },
     {
       $group:
         {
           _id: "$cardDelay",
-          average: {$avg: "$answerDelay"},
-          succesfulAnswers: {$sum: {$cond: ["$isSuccessful", 1, 0]}},
-          wrongAnswers: {$sum: {$cond: ["$isSuccessful", 0, 1]}},
-          total: {$count: {}}
+          average: { $avg: "$answerDelay" },
+          succesfulAnswers: { $sum: { $cond: ["$isSuccessful", 1, 0] } },
+          wrongAnswers: { $sum: { $cond: ["$isSuccessful", 0, 1] } },
+          total: { $count: {} }
         },
     },
   ]));
@@ -160,13 +170,14 @@ async function answers(request, response) {
                                            total
                                          }) => {
     return {
+      total,
       delay,
       delayAverage,
       successfulAnswersRate: Math.round(succesfulAnswers / total * 10000) / 100
     }
   });
 
-  response.json({answersStats});
+  response.json({ answersStats });
 }
 
 
@@ -200,21 +211,34 @@ async function updatePreferences(request, response) {
   const {
     hasCategoriesDisplayed,
     hasStreakNotifications,
-    intervals
+    intervals,
+    limitDate,
   } = request.body;
 
 
   const user = await User.findById(request.user);
-  const areIntervalsTheSame = intervals.every((val, idx) => val.isEnabled === user.intervals[idx].isEnabled);
-
-  user.hasCategoriesDisplayed = hasCategoriesDisplayed;
-  user.hasStreakNotifications = hasStreakNotifications;
-  if (areIntervalsTheSame) { // Used to detect if intervals have changed since that this is an array of objects
-    user.intervals = intervals;
+  if (intervals && 1 < intervals.length) {
+    const areIntervalsTheSame = intervals.every((val, idx) => val.isEnabled === user.intervals[idx].isEnabled);
+    if (areIntervalsTheSame) { // Used to detect if intervals have changed since that this is an array of objects
+      user.intervals = intervals;
+    }
   }
+
+  if (hasStreakNotifications) {
+    user.hasStreakNotifications = hasStreakNotifications;
+  }
+
+  if (hasCategoriesDisplayed) {
+    user.hasCategoriesDisplayed = hasCategoriesDisplayed;
+  }
+
+  if (limitDate) {
+    user.limitDate = moment(limitDate, "DD/MM/YYYY").toDate();
+  }
+
   await user.save();
 
-  response.json({user});
+  response.json({ user });
 }
 
 /**

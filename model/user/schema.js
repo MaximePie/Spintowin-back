@@ -49,6 +49,7 @@ export const schema = {
   hasCategoriesDisplayed: {type: Boolean, default: true},
   hasStreakNotifications: {type: Boolean, default: true},
   hasSoundEnabled: {type: Boolean, default: true},
+  limitDate: {type: Date},
   intervals: [
     {
       value: Number,

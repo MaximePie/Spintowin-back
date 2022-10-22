@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import moment from "moment";
-import {displayedCardsLimit, requiredExpForNextLevel} from "../../data/config.js";
+import { displayedCardsLimit, requiredExpForNextLevel } from "../../data/config.js";
 
 import Card from '../Card/card.js'
 import UserBadge from '../userBadge.js'
@@ -41,6 +41,30 @@ export async function remainingQuestionsCount() {
     nextQuestionAt: {
       $lt: currentDate.valueOf()
     },
+    isMemorized: false,
+  })
+}
+
+/**
+ * Return the number of questions to review
+ * with a currentDelay lower or equal than 5 or null
+ * @returns {Promise<*>}
+ */
+export async function notStartedQuestionsCount() {
+  const currentDate = new Date();
+
+  return UserCard.count({
+    userId: this._id,
+    $or : [
+      {
+        currentDelay: {
+          $lte: 5,
+        },
+      },
+      {
+        currentDelay: null,
+      }
+    ],
     isMemorized: false,
   })
 }
@@ -117,11 +141,11 @@ export async function calculateMemorizedData() {
 
   return {
     total: await cards.count(),
-    moreThanOneMinute: await cards.countDocuments({currentDelay: {$gte: minuteLength}}),
-    moreThanOneHour: await cards.countDocuments({currentDelay: {$gte: hourLength}}),
-    moreThanOneDay: await cards.countDocuments({currentDelay: {$gte: dayLength}}),
-    moreThanOneWeek: await cards.countDocuments({currentDelay: {$gte: weekLength}}),
-    moreThanOneMonth: await cards.countDocuments({currentDelay: {$gte: monthLength}}),
+    moreThanOneMinute: await cards.countDocuments({ currentDelay: { $gte: minuteLength } }),
+    moreThanOneHour: await cards.countDocuments({ currentDelay: { $gte: hourLength } }),
+    moreThanOneDay: await cards.countDocuments({ currentDelay: { $gte: dayLength } }),
+    moreThanOneWeek: await cards.countDocuments({ currentDelay: { $gte: weekLength } }),
+    moreThanOneMonth: await cards.countDocuments({ currentDelay: { $gte: monthLength } }),
     startedCards: await UserCardStat.count(),
     todayMinuteLengthCard,
     todayHourLengthCard,
@@ -135,7 +159,7 @@ export async function calculateMemorizedData() {
 export async function calculateProgressData() {
   const userId = this._id;
   const today = await Card
-    .find({currentDelay: 5, user: userId})
+    .find({ currentDelay: 5, user: userId })
     .then(async (cards) => {
       return UserCardStat.count({
         userId,
@@ -146,10 +170,10 @@ export async function calculateProgressData() {
     });
 
   return {
-    total: await Card.count({user: this._id}),
+    total: await Card.count({ user: this._id }),
     today,
     started: await Card.count({
-      currentDelay: {$gt: 0}
+      currentDelay: { $gt: 0 }
     }),
   };
 }
@@ -158,7 +182,7 @@ export async function checkLastActivity() {
   const todayDate = moment();
   const lastDay = moment(this.lastActivity);
   if (!this.lastActivity || !todayDate.isSame(lastDay, "d")) {
-    await UserCardStat.deleteMany({userId: this._id});
+    await UserCardStat.deleteMany({ userId: this._id });
     this.lastActivity = moment().toDate();
     this.save();
   }
@@ -166,9 +190,9 @@ export async function checkLastActivity() {
 
 export async function badges() {
   const userId = this._id;
-  const userBadges = await UserBadge.find({userId}).then(async userBadges => {
+  const userBadges = await UserBadge.find({ userId }).then(async userBadges => {
     // On renvoie le résultat de la promesse
-    const badges = await Badge.find({_id: {$in: userBadges.map(({badgeId}) => badgeId)}});
+    const badges = await Badge.find({ _id: { $in: userBadges.map(({ badgeId }) => badgeId) } });
 
     // Calculating top badges in each category
     const addedCardsBadge = UserBadge.topBadgeFromCategory(badges, "addedCards");
@@ -204,24 +228,24 @@ export async function currentProgressForBadge(badgeType, userId) {
   let currentValue = 0;
   switch (badgeType) {
     case "addedCards":
-      currentValue = await Card.countDocuments({user: userId});
+      currentValue = await Card.countDocuments({ user: userId });
       break;
     case "memorizedCardsMoreThanOneDay":
       currentValue = await Card.countDocuments({
         user: userId,
-        currentDelay: {$gte: dayInterval},
+        currentDelay: { $gte: dayInterval },
       });
       break;
     case "memorizedCardsMoreThanOneWeek":
       currentValue = await Card.countDocuments({
         user: userId,
-        currentDelay: {$gte: weekInterval},
+        currentDelay: { $gte: weekInterval },
       });
       break;
     case "memorizedCardsMoreThanOneMonth":
       currentValue = await Card.countDocuments({
         user: userId,
-        currentDelay: {$gte: monthInterval},
+        currentDelay: { $gte: monthInterval },
       });
       break;
     default:
@@ -244,7 +268,7 @@ export async function checkAchievements() {
     });
 
     const availableBadgesIds = availableBadges.map(badge => badge._id);
-    const descernedBadgesForUser = await UserBadge.count({userId, badgeId: {$in: availableBadges}});
+    const descernedBadgesForUser = await UserBadge.count({ userId, badgeId: { $in: availableBadges } });
 
     if (descernedBadgesForUser !== availableBadgesIds.length) {
       const undescernedBadgesForUser = await Badge
@@ -257,8 +281,8 @@ export async function checkAchievements() {
         .then(async badges => {
           const undescerned = [];
           for (const badge of badges) {
-            const {_id: badgeId} = badge;
-            const isDescerned = await UserBadge.findOne({userId, badgeId});
+            const { _id: badgeId } = badge;
+            const isDescerned = await UserBadge.findOne({ userId, badgeId });
             if (!isDescerned) {
               undescerned.push(badge);
             }
@@ -289,7 +313,7 @@ export async function checkAchievements() {
 export async function updateProgress(userCard) {
   // Si la carte est déjà dans la liste, ne pas l'ajouter, mais vider ses champs et ajouter le bon
 
-  const existingUserCard = await UserCardStat.findOne({cardId: userCard.cardId});
+  const existingUserCard = await UserCardStat.findOne({ cardId: userCard.cardId });
   let interval = "";
 
   switch (userCard.currentDelay) {

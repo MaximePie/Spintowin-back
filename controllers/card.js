@@ -14,7 +14,7 @@ async function deleteCard(request, response) {
 
 async function editCard(request, response) {
   const { id } = request.params;
-  const { question, answer } = request.body;
+  const { question, answer, hint } = request.body;
   const card = await Card.findById(id);
 
   if (question) {
@@ -25,7 +25,12 @@ async function editCard(request, response) {
     card.answer = answer;
   }
 
-  if (answer || question) {
+  // push the hint in the card list of hints
+  if (hint) {
+    card.hints.push(hint);
+  }
+
+  if (answer || question || hint) {
     await card.save();
   }
   response.status(200).json(card)
@@ -251,7 +256,6 @@ const cardsController = {
   getOne,
   create,
   bulkCreate,
-  generate,
   deleteAll,
   stats,
 }

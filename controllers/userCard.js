@@ -137,19 +137,11 @@ async function train(request, response) {
    * @type {User}
    */
 
-  console.time("train");
-  console.time("user");
-
   const user = await User.findById(request.user._id);
   if (!user) {
     throw new Error("User not found");
   }
-  console.timeEnd("user");
-  console.time("questions list");
   const reviewCards = await user.reviewQuestions();
-  console.timeEnd("questions list");
-
-  console.time("Merging");
 
   // Merging properties
   const cardsList = reviewCards.map(userCard => {
@@ -161,17 +153,12 @@ async function train(request, response) {
       answer: card.answer,
       question: card.question || null,
       image: card.image || null,
-      category: category?.title
+      category: category?.title,
+      hints: card.hints || null,
     }
   });
-  console.timeEnd("Merging");
 
-  // const cardsWithoutImage = cardsList.filter(({image}) => !image);
   const cardsWithImage = cardsList.filter(({image}) => !!image);
-
-  // const returnedCards = 0 < cardsWithoutImage.length ? cardsWithoutImage : cardsList.slice(0, 3);
-
-  console.timeEnd("train");
 
   response.status(success).json({
     cards: cardsList,

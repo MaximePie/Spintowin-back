@@ -13,6 +13,11 @@ const cardSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   },
+  hints: [
+    {
+      type: mongoose.Schema.Types.String,
+    }
+  ],
 });
 
 
