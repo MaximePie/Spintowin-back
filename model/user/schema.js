@@ -13,11 +13,6 @@ export const schema = {
     min: 6,
     max: 255,
   },
-  hasAdsEnabled: {
-    type: Boolean,
-    default: false,
-    required: false,
-  },
   role: {
     type: String, // "user" | "admin"
     default: "user"

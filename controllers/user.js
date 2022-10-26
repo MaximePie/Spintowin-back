@@ -6,17 +6,35 @@ import mongoose from "mongoose"
 import User from '../model/user/user.js';
 import UserAnswer from "../model/stats/userAnswer.js"
 import moment from "moment";
-import { notStartedQuestionsCount, remainingQuestionsCount } from "../model/user/methods.js";
 
 
 const validationSchema = Joi.object({
-  username: Joi.string().min(6).required(),
-  email: Joi.string().min(6).required().email(),
-  password: Joi.string().min(6).required(),
+  username: Joi
+    .string()
+    .min(6)
+    .required()
+    .messages({
+      'string.empty': `Le nom d'utilisateur est requis`,
+      'string.min': `Le nom d'utilisateur doit contenir au moins 6 caractères`,
+    })
+  ,
+  email: Joi.string().min(6).required().email()
+    .messages({
+      'string.empty': `L'email est requis`,
+      'string.min': `L'email doit contenir au moins 6 caractères`,
+      'string.email': `L'email n'est pas valide`,
+    }),
+  password: Joi.string().min(6).required()
+    .messages({
+      'string.empty': `Le mot de passe est requis`,
+      'string.min': `Le mot de passe doit contenir au moins 6 caractères`,
+    }),
 });
 
 /**
  * Creates a new User
+ * The error has to be in an array because of the way Joi works
+ * [error: [{message: "error message"}]]
  * @param request
  * @param response
  */
@@ -31,14 +49,16 @@ async function create(request, response) {
   // Validation
   const validation = validationSchema.validate(userCredentials);
   if (validation.error) {
-    return response.json({
-      error: validation.error.details
+    return response.status(400).json({
+      errors: validation.error.details
     })
   }
 
   if (await emailExists(email)) {
-    return response.json({
-      message: "L'email est déjà utilisé",
+    return response.status(400).json({
+      errors: [{
+        message: "L'email existe déjà",
+      }]
     })
   }
 
