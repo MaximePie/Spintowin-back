@@ -231,6 +231,7 @@ async function updatePreferences(request, response) {
   const {
     hasCategoriesDisplayed,
     hasStreakNotifications,
+    hasSoundEnabled,
     intervals,
     limitDate,
   } = request.body;
@@ -244,13 +245,18 @@ async function updatePreferences(request, response) {
     }
   }
 
-  if (hasStreakNotifications) {
+  if (hasStreakNotifications !== undefined) {
     user.hasStreakNotifications = hasStreakNotifications;
   }
 
-  if (hasCategoriesDisplayed) {
+  if (hasCategoriesDisplayed !== undefined) {
     user.hasCategoriesDisplayed = hasCategoriesDisplayed;
   }
+
+  if (hasSoundEnabled !== undefined) {
+    user.hasSoundEnabled = hasSoundEnabled;
+  }
+
 
   if (limitDate) {
     user.limitDate = moment(limitDate, "DD/MM/YYYY").toDate();
