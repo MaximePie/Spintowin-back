@@ -15,7 +15,6 @@ import UserCard from "../model/userCard.js";
 
 
 const router = express.Router();
-const upload = multer({dest: './uploads/'});
 
 // Let's put all the routes here.
 // If the amount of routes is too big, create a folder and split the file, one file for each entity should do the work
@@ -38,8 +37,8 @@ router.post('/users/connectedUser/preferences/update', verify, userController.up
 // Cards
 router.get('/cards/getOne', verify, cardsController.getOne);
 router.get('/cards/stats', verify, cardsController.stats);
-router.post('/cards/', verify, upload.single('file'), cardsController.create);
-router.post('/cards/upload/', verify, upload.single('file'), cardsController.bulkCreate);
+router.post('/cards/', verify, cardsController.create);
+router.post('/cards/upload/', verify, cardsController.bulkCreate);
 router.post('/cards/edit/:id', verify, cardsController.editCard);
 router.get('/cards/delete/:id', cardsController.deleteCard);
 router.get('/cards/deleteAll', verify, cardsController.deleteAll);
@@ -60,18 +59,7 @@ router.post('/userCards/categories', verify, categoriesController.createCategory
 // Admin cards
 router.post('/seed', verifyDevelopper, seeder.seed);
 router.post('/badge', verifyDevelopper, badgeController.create);
-router.get('/deleteCardsForUser/:_id', verifyDevelopper, async (request, response) => {
-  const user = await User.findById(request.params._id);
-  if (user) {
-    await Card.deleteMany({
-      user: user
-    })
-    await UserCard.deleteMany({
-      userId: user,
-    })
-    response.json({user});
-  }
-});
+
 
 
 export default router

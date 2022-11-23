@@ -85,6 +85,9 @@ export async function reviewQuestions(categories = []) {
     },
     isMemorized: {
       $ne: true,
+    },
+    currentDelay: {
+      $ne: 5,
     }
   };
 
@@ -97,9 +100,10 @@ export async function reviewQuestions(categories = []) {
     .find(query)
     .sort({
       currentDelay: -1,
-      nextQuestionAt: -1,
+      nextQuestionAt: 1,
     })
     .limit(displayedCardsLimit)
+    .skip(displayedCardsLimit * 1)
     .populate('cardId')
     .populate('categoryId')
     .find()
