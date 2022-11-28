@@ -1,5 +1,4 @@
 import express from 'express'
-
 import cardsController from '../controllers/card.js'
 import userCardsController from '../controllers/userCard.js'
 import userController from '../controllers/user.js'
@@ -8,6 +7,11 @@ import categoriesController from '../controllers/category.js'
 import seeder from '../database/seeder.js'
 import verify from '../routes/verifyToken.js'
 import verifyDevelopper from '../routes/verifyDevelopper.js'
+import multer from "multer";
+
+const uploadRoute = process.env.UPLOAD_ROUTE;
+console.log("uploadRoute", uploadRoute);
+const upload = multer({dest: uploadRoute});
 
 
 const router = express.Router();
@@ -33,8 +37,8 @@ router.post('/users/connectedUser/preferences/update', verify, userController.up
 // Cards
 router.get('/cards/getOne', verify, cardsController.getOne);
 router.get('/cards/stats', verify, cardsController.stats);
-router.post('/cards/', verify, cardsController.create);
-router.post('/cards/upload/', verify, cardsController.bulkCreate);
+router.post('/cards/', verify, upload.single('file'), cardsController.create);
+router.post('/cards/upload/', verify, upload.single('file'), cardsController.bulkCreate);
 router.post('/cards/edit/:id', verify, cardsController.editCard);
 router.get('/cards/delete/:id', cardsController.deleteCard);
 router.get('/cards/deleteAll', verify, cardsController.deleteAll);
