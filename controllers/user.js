@@ -238,11 +238,15 @@ async function updatePreferences(request, response) {
 
 
   const user = await User.findById(request.user);
-  if (intervals && 1 < intervals.length) {
-    const areIntervalsTheSame = intervals.every((val, idx) => val.isEnabled === user.intervals[idx].isEnabled);
-    if (areIntervalsTheSame) { // Used to detect if intervals have changed since that this is an array of objects
-      user.intervals = intervals;
-    }
+  try {
+    user.updateIntervals(intervals);
+  }
+    catch (e) {
+    return response.status(400).json({
+      errors: [{
+        message: e.message,
+      }]
+    })
   }
 
   if (hasStreakNotifications !== undefined) {
