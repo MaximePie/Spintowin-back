@@ -106,12 +106,12 @@ async function login(request, response) {
         token,
       })
     } else {
-      return response.json({
+      return response.status(401).json({
         password: "Le mot de passe n'a pas été trouvé...",
       })
     }
   } else {
-    return response.json({
+    return response.status(401).json({
       message: "Email non trouvé.",
     })
   }
