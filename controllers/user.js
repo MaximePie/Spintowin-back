@@ -106,12 +106,12 @@ async function login(request, response) {
         token,
       })
     } else {
-      return response.json({
+      return response.status(401).json({
         password: "Le mot de passe n'a pas été trouvé...",
       })
     }
   } else {
-    return response.json({
+    return response.status(401).json({
       message: "Email non trouvé.",
     })
   }
@@ -238,11 +238,15 @@ async function updatePreferences(request, response) {
 
 
   const user = await User.findById(request.user);
-  if (intervals && 1 < intervals.length) {
-    const areIntervalsTheSame = intervals.every((val, idx) => val.isEnabled === user.intervals[idx].isEnabled);
-    if (areIntervalsTheSame) { // Used to detect if intervals have changed since that this is an array of objects
-      user.intervals = intervals;
-    }
+  try {
+    user.updateIntervals(intervals);
+  }
+    catch (e) {
+    return response.status(400).json({
+      errors: [{
+        message: e.message,
+      }]
+    })
   }
 
   if (hasStreakNotifications !== undefined) {

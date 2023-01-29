@@ -76,14 +76,16 @@ async function create(request, response) {
   if (request.body) {
     let errors = [];
     const { question, answer, category, shouldCreateReverseQuestion } = request.body;
-    const file = request.file;
+    const { file } = request;
     let uploadedImage = undefined;
     if (file) {
-      const { path } = request.file;
+      const { path, filename } = file;
       const blob = fs.readFileSync(path);
+      console.log("File is ", file);
+      console.log("Body is ", request.body);
       uploadedImage = await s3.upload({
         Bucket: process.env.AWS_S3_BUCKET_NAME,
-        Key: request.file.filename,
+        Key: filename,
         Body: blob,
       }).promise()
     }

@@ -370,3 +370,19 @@ export async function gainLevel() {
   this.level = level;
   this.experienceRequiredForNextLevel = experienceRequired;
 }
+
+/**
+ * Update the user intervals based on the given intervals
+ * @param newIntervals {Array} Array of intervals (Delay, isEnabled)
+ */
+export function updateIntervals(newIntervals) {
+  if (!newIntervals || newIntervals.length < 2) {
+    throw new Error("Invalid intervals");
+  }
+  console.log("User.updateIntervals - Updating with values ", newIntervals);
+  const areIntervalsTheSame = this.intervals.every((val, idx) => val.isEnabled === newIntervals[idx].isEnabled);
+  if (!areIntervalsTheSame) {
+    console.log("User.updateIntervals - Intervals have changed, updating");
+    this.intervals = newIntervals;
+  }
+}

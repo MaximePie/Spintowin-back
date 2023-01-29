@@ -9,7 +9,7 @@ import {
   initializeIntervals, notStartedQuestionsCount,
   remainingQuestionsCount,
   reviewQuestions,
-  updateExperience,
+  updateExperience, updateIntervals,
   updateProgress,
 } from "./methods.js";
 import {schema} from "./schema.js";
@@ -31,6 +31,7 @@ userSchema.methods = {
   updateExperience,
   updateProgress,
   currentProgressForBadge,
+  updateIntervals,
   reviewQuestions,
 };
 
