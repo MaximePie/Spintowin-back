@@ -9,7 +9,7 @@ import { cards } from '../data/cards.js'
 async function deleteCard(request, response) {
   const deletedCard = await Card.deleteOne({ _id: request.params.id });
   await UserCard.deleteOne({ cardId: request.params.id });
-  await response.status(200).json(deletedCard)
+  response.status(200).json(deletedCard)
 }
 
 async function editCard(request, response) {

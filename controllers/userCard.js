@@ -178,32 +178,44 @@ async function train(request, response) {
  */
 async function update(request, response) {
 
-  const {newDelay, isMemorized, answerTime: answerDelay, isFromReviewPage} = request.body;
-  if (!newDelay && newDelay !== 0) {
-    response.status(400).json({message: 'Erreur, il manque le newDelay'});
-    return;
-  }
+  const {isMemorized, answerTime: answerDelay, isFromReviewPage, isSuccessful} = request.body;
 
-
-  const {id: cardId} = request.params;
-  if (!cardId) {
+  const {id} = request.params;
+  if (!id) {
     throw Error("Card ID has to be defined");
   }
   const userId = request.user._id;
-  const card = await UserCard.findOne({cardId, userId});
+  const user = await User.findById(userId);
+  const card = await UserCard.findById(id);
+  console.log(card);
+  console.log(id);
+
+  if (isSuccessful === undefined) {
+    // Invalid parameters status code
+    return response.status(400).json({message: "Invalid parameters, isSuccessful is missing, check the spelling", });
+  }
+
+  if (!card) {
+    return response.status(404).json({message: "Card not found"});
+  }
+
+  if (card.userId.toString() !== userId.toString()) {
+    return response.status(403).json({message: "You are not allowed to update this card"});
+  }
 
   const nextQuestionAt = new Date();
-  nextQuestionAt.setSeconds(nextQuestionAt.getSeconds() + newDelay);
-
-  const wasLastAnswerSuccessful = newDelay > card.currentDelay;
-  if (wasLastAnswerSuccessful) {
+  if (isSuccessful) {
     card.currentSuccessfulAnswerStreak++;
     User.UpdateCardForUser(request.user._id, card);
   } else {
     card.currentSuccessfulAnswerStreak = 0;
   }
-  UserAnswer.createNew(card.currentDelay, userId, wasLastAnswerSuccessful, isFromReviewPage && answerDelay);
+  UserAnswer.createNew(card.currentDelay, userId, isSuccessful, isFromReviewPage && answerDelay);
 
+  // Get the next enabled user interval to the current card delay
+  const enabledIntervals = user.intervals.filter(interval => interval.isEnabled);
+  const newDelay = enabledIntervals[enabledIntervals.findIndex(interval => interval.value === card.currentDelay) + 1]?.value || card.currentDelay;
+  nextQuestionAt.setSeconds(nextQuestionAt.getSeconds() + newDelay);
   card.currentDelay = newDelay;
   card.nextQuestionAt = nextQuestionAt.valueOf();
 
@@ -211,8 +223,12 @@ async function update(request, response) {
     card.isMemorized = true;
   }
 
+  console.log(card);
+  console.log(newDelay);
+  console.log(nextQuestionAt.valueOf());
+
   await card.save();
-  return response.json({message: "OK"});
+  return response.json({message: "OK", newDelay, card});
 }
 
 
