@@ -83,11 +83,18 @@ async function create(request, response) {
       const blob = fs.readFileSync(path);
       console.log("File is ", file);
       console.log("Body is ", request.body);
-      uploadedImage = await s3.upload({
-        Bucket: process.env.AWS_S3_BUCKET_NAME,
-        Key: filename,
-        Body: blob,
-      }).promise()
+      try {
+        uploadedImage = await s3.upload({
+          Bucket: "flashcard-images",
+          Key: filename,
+          // Body: blob,
+          ACL: "public-read",
+        }).promise();
+      }
+      catch (error) {
+        console.log(error);
+        return response.status(500).send("Il y a eu une erreur lors de l'upload de l'image");
+      }
     }
     if (!question && !file) {
       errors.push('Erreur, il faut un question');

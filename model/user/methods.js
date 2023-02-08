@@ -386,3 +386,10 @@ export function updateIntervals(newIntervals) {
     this.intervals = newIntervals;
   }
 }
+
+export async function updateCard(card) {
+  await this.updateExperience(card);
+  await this.updateProgress(card);
+
+  return this;
+}

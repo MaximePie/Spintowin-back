@@ -11,6 +11,7 @@ import {
   reviewQuestions,
   updateExperience, updateIntervals,
   updateProgress,
+  updateCard,
 } from "./methods.js";
 import {schema} from "./schema.js";
 
@@ -33,14 +34,9 @@ userSchema.methods = {
   currentProgressForBadge,
   updateIntervals,
   reviewQuestions,
+  updateCard,
 };
 
-
-userSchema.statics.UpdateCardForUser = async function (userId, card) {
-  const user = await User.findById(userId);
-  await user.updateExperience(card);
-  user.updateProgress(card);
-};
 
 userSchema.pre('save', async function (next) {
   // ...

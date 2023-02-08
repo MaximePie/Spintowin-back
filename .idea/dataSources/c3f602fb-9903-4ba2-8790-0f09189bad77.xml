@@ -4,28 +4,28 @@
     <root id="1">
       <ServerVersion>5.0.14</ServerVersion>
     </root>
-    <schema id="2" parent="1" name="admin"/>
-    <schema id="3" parent="1" name="carbsfever"/>
-    <schema id="4" parent="1" name="chocolates"/>
-    <schema id="5" parent="1" name="demo"/>
-    <schema id="6" parent="1" name="lifemanager"/>
-    <schema id="7" parent="1" name="local"/>
-    <schema id="8" parent="1" name="resources"/>
-    <schema id="9" parent="1" name="resources-illyzaelle"/>
-    <schema id="10" parent="1" name="spino">
+    <schema id="2" parent="1" name="carbsfever"/>
+    <schema id="3" parent="1" name="chocolates"/>
+    <schema id="4" parent="1" name="demo"/>
+    <schema id="5" parent="1" name="lifemanager"/>
+    <schema id="6" parent="1" name="resources"/>
+    <schema id="7" parent="1" name="resources-illyzaelle"/>
+    <schema id="8" parent="1" name="spino">
       <Current>1</Current>
     </schema>
-    <schema id="11" parent="1" name="spino2"/>
-    <schema id="12" parent="1" name="spinotest"/>
-    <schema id="13" parent="1" name="test"/>
-    <schema id="14" parent="1" name="todo"/>
-    <table id="15" parent="10" name="cards"/>
-    <table id="16" parent="10" name="categories"/>
-    <table id="17" parent="10" name="useranswers"/>
-    <table id="18" parent="10" name="usercards"/>
-    <table id="19" parent="10" name="usercardstats"/>
-    <table id="20" parent="10" name="userintervals"/>
-    <table id="21" parent="10" name="users"/>
+    <schema id="9" parent="1" name="spino2"/>
+    <schema id="10" parent="1" name="spinotest"/>
+    <schema id="11" parent="1" name="test"/>
+    <schema id="12" parent="1" name="todo"/>
+    <schema id="13" parent="1" name="admin"/>
+    <schema id="14" parent="1" name="local"/>
+    <table id="15" parent="8" name="cards"/>
+    <table id="16" parent="8" name="categories"/>
+    <table id="17" parent="8" name="useranswers"/>
+    <table id="18" parent="8" name="usercards"/>
+    <table id="19" parent="8" name="usercardstats"/>
+    <table id="20" parent="8" name="userintervals"/>
+    <table id="21" parent="8" name="users"/>
     <column id="22" parent="15" name="_id">
       <DataType>ObjectId|12s</DataType>
       <Position>1</Position>

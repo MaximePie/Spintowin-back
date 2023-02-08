@@ -202,11 +202,12 @@ async function update(request, response) {
   if (card.userId.toString() !== userId.toString()) {
     return response.status(403).json({message: "You are not allowed to update this card"});
   }
+  let updatedUser = user;
 
   const nextQuestionAt = new Date();
   if (isSuccessful) {
     card.currentSuccessfulAnswerStreak++;
-    User.UpdateCardForUser(request.user._id, card);
+    updatedUser = await user.updateCard(card);
   } else {
     card.currentSuccessfulAnswerStreak = 0;
   }
@@ -228,7 +229,7 @@ async function update(request, response) {
   console.log(nextQuestionAt.valueOf());
 
   await card.save();
-  return response.json({message: "OK", newDelay, card});
+  return response.json({message: "OK", newDelay, card, updatedUser});
 }
 
 
