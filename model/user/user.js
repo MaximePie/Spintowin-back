@@ -12,6 +12,7 @@ import {
   updateExperience, updateIntervals,
   updateProgress,
   updateCard,
+  addCoins,
 } from "./methods.js";
 import {schema} from "./schema.js";
 
@@ -35,6 +36,7 @@ userSchema.methods = {
   updateIntervals,
   reviewQuestions,
   updateCard,
+  addCoins
 };
 
 

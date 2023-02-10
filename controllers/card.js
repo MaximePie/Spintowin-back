@@ -81,8 +81,6 @@ async function create(request, response) {
     if (file) {
       const { path, filename } = file;
       const blob = fs.readFileSync(path);
-      console.log("File is ", file);
-      console.log("Body is ", request.body);
       try {
         uploadedImage = await s3.upload({
           Bucket: "flashcard-images",

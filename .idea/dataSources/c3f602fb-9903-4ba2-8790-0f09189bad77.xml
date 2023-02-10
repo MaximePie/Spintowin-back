@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dataSource name="spino@cluster0.otmsg.mongodb.net">
   <database-model serializer="dbm" dbms="MONGO" family-id="MONGO" format-version="4.43">
-    <root id="1">
-      <ServerVersion>5.0.14</ServerVersion>
-    </root>
+    <root id="1"/>
     <schema id="2" parent="1" name="carbsfever"/>
     <schema id="3" parent="1" name="chocolates"/>
     <schema id="4" parent="1" name="demo"/>

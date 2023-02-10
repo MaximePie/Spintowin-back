@@ -172,13 +172,15 @@ async function train(request, response) {
 /**
  * Route : '/cards/:id'
  * Called when the user has answered, so we can update the card data
+ *
+ * Coins represent the amount of coins the user has earned by answering the question
  * @param request
  * @param response
  * @returns {Promise<any>}
  */
 async function update(request, response) {
 
-  const {isMemorized, answerTime: answerDelay, isFromReviewPage, isSuccessful} = request.body;
+  const {isMemorized, answerTime: answerDelay, isFromReviewPage, isSuccessful, coins} = request.body;
 
   const {id} = request.params;
   if (!id) {
@@ -187,8 +189,6 @@ async function update(request, response) {
   const userId = request.user._id;
   const user = await User.findById(userId);
   const card = await UserCard.findById(id);
-  console.log(card);
-  console.log(id);
 
   if (isSuccessful === undefined) {
     // Invalid parameters status code
@@ -208,6 +208,9 @@ async function update(request, response) {
   if (isSuccessful) {
     card.currentSuccessfulAnswerStreak++;
     updatedUser = await user.updateCard(card);
+    if (0 < coins) {
+      updatedUser = await updatedUser.addCoins(coins);
+    }
   } else {
     card.currentSuccessfulAnswerStreak = 0;
   }
@@ -223,10 +226,6 @@ async function update(request, response) {
   if (isMemorized) {
     card.isMemorized = true;
   }
-
-  console.log(card);
-  console.log(newDelay);
-  console.log(nextQuestionAt.valueOf());
 
   await card.save();
   return response.json({message: "OK", newDelay, card, updatedUser});

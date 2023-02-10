@@ -387,9 +387,26 @@ export function updateIntervals(newIntervals) {
   }
 }
 
+/**
+ * Update the user intervals based on the given intervals
+ * @param card
+ * @returns {Promise<updateCard>}
+ */
 export async function updateCard(card) {
   await this.updateExperience(card);
   await this.updateProgress(card);
 
+  return this;
+}
+
+/**
+ * Add coins to the user and save it
+ * @param amount
+ * @returns {addCoins}
+ */
+export async function addCoins(amount) {
+  console.log("User.addCoins - Adding coins to user", this._id, "amount", amount)
+  this.coins += amount;
+  await this.save();
   return this;
 }

@@ -35,6 +35,10 @@ export const schema = {
     type: Number,
     default: 0,
   },
+  coins: {
+    type: Number,
+    default: 0,
+  },
   cards: [ // Used for foreign key purpose
     {type: mongoose.Schema.Types.ObjectId, ref: 'Card'}
   ],
