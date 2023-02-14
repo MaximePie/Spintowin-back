@@ -6,6 +6,7 @@ import mongoose from "mongoose"
 import User from '../model/user/user.js';
 import UserAnswer from "../model/stats/userAnswer.js"
 import moment from "moment";
+import UserCard from "../model/userCard.js";
 
 
 const validationSchema = Joi.object({
@@ -140,7 +141,16 @@ async function connectedUser(request, response) {
  */
 async function index(request, response) {
   const users = await User.find({});
-  await response.json({ users })
+  // time
+  console.time('stating time')
+  const usersWithStats = await Promise.all(users.map(async (user) =>
+    ({
+        ...user._doc,
+          cardsCount: await UserCard.find({ userId: user._id }).countDocuments(),
+      })
+  ));
+    console.timeEnd('stating time')
+  await response.json({ users: usersWithStats })
 }
 
 /**
