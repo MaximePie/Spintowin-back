@@ -144,7 +144,7 @@ async function train(request, response) {
   const reviewCards = await user.reviewQuestions();
 
   // Merging properties
-  const cardsList = reviewCards.map(userCard => {
+  const cardsList = reviewCards.filter(({cardId}) => !!cardId).map(userCard => {
     const {cardId: card, categoryId: category} = userCard;
     return {
       ...userCard._doc,
