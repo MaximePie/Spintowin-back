@@ -38,21 +38,6 @@ async function editCard(request, response) {
 
 
 /**
- * Only use for testing purpose !
- * @param request
- * @param response
- */
-function generate(request, response) {
-  const user = request.user;
-  let added = 0;
-  cards.forEach(card => {
-    createCard(card.question, card.answer, user);
-    added++;
-  });
-  response.json({ added });
-}
-
-/**
  * WARNING, this method deletes all the entries in the database !
  * Use for test purpose only ! (Please please please)
  */

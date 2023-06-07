@@ -2,7 +2,7 @@ import UserCard from '../model/userCard.js'
 import Card from '../model/Card/card.js'
 import User from '../model/user/user.js'
 import UserAnswer from '../model/stats/userAnswer.js'
-import {displayedCardsLimit} from "../data/config.js"
+import {DISPLAYED_CARD_LIMIT} from "../data/config.js"
 
 const success = 200;
 const error = {
@@ -11,7 +11,7 @@ const error = {
 
 /**
  * Route : "/userCards/resorb/:userCardId"
- * Remove the userCard receveived as a parameter from the userCards collection
+ * Remove the userCard received as a parameter from the userCards collection
  * @param request
  * @param response
  * @returns The name of the deleted Card

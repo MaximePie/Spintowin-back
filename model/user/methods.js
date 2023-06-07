@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import moment from "moment";
-import { displayedCardsLimit, requiredExpForNextLevel } from "../../data/config.js";
+import { DISPLAYED_CARD_LIMIT, requiredExpForNextLevel } from "../../data/config.js";
 
 import Card from '../Card/card.js'
 import UserBadge from '../userBadge.js'
@@ -72,7 +72,6 @@ export async function notStartedQuestionsCount() {
 
 /**
  * Returns the reviewQuestions onGoing query for the User
- *
  * @param categories {array} of question Categories
  * @return {QueryWithHelpers<Array<Document<any, any>>, Document<any, any>, {}>}
  */
@@ -96,10 +95,10 @@ export async function reviewQuestions(categories = []) {
   return UserCard
     .find(query)
     .sort({
-      currentDelay: -1,
+      currentDelay: 1,
       nextQuestionAt: 1,
     })
-    .limit(displayedCardsLimit)
+    .limit(DISPLAYED_CARD_LIMIT)
     .populate('cardId')
     .populate('categoryId')
     .find()
