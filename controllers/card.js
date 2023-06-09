@@ -90,13 +90,20 @@ async function create(request, response) {
     if (errors.length) {
       response.status(400).json({ message: errors });
     } else {
-      createCard(question, answer, user, response, uploadedImage, category);
+      try {
+        await createCard(question, answer, user, response, uploadedImage, category);
 
-      if ('true' === shouldCreateReverseQuestion && !file) {
-        createCard(answer, question, user, response, uploadedImage, category);
+        if ('true' === shouldCreateReverseQuestion && !file) {
+          await createCard(answer, question, user, response, uploadedImage, category);
+        }
+
+        response.status(200).json({ message: "La carte a été créée." })
       }
-
-      response.status(200).json({ message: "La carte va être créée." })
+        catch (error) {
+        console.log(error);
+        response.status(500).json({ message: "Il y a eu une erreur lors de la création de la carte",
+        error});
+        }
     }
   } else {
     response.status(404).json({ message: 'Aucun body trouvé' });
