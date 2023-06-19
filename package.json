@@ -10,16 +10,17 @@
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.29.1",
     "mongoose": "^5.12.3",
-    "multer": "^1.4.5-lts.1",
-    "node-prune": "^1.0.2"
+    "multer": "^1.4.5-lts.1"
   },
   "devDependencies": {
     "nodemon": "^2.0.20"
   },
+  "engines": {
+    "npm": "5.7.1"
+  },
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "start:dev": "nodemon server.js",
-    "postinstall": "node-prune"
+    "start:dev": "nodemon server.js"
   }
 }
