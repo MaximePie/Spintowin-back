@@ -3,6 +3,7 @@ import Card from '../model/Card/card.js'
 import User from '../model/user/user.js'
 import UserAnswer from '../model/stats/userAnswer.js'
 import {DISPLAYED_CARD_LIMIT} from "../data/config.js"
+import {getNewDelay} from "../helpers/userCard.js";
 
 const success = 200;
 const error = {
@@ -205,7 +206,7 @@ async function update(request, response) {
   let updatedUser = user;
 
   const nextQuestionAt = new Date();
-  if (isSuccessful) {
+  if (isSuccessful === 'true') {
     card.currentSuccessfulAnswerStreak++;
     updatedUser = await user.updateCard(card);
     if (0 < coins) {
@@ -218,7 +219,8 @@ async function update(request, response) {
 
   // Get the next enabled user interval to the current card delay
   const enabledIntervals = user.intervals.filter(interval => interval.isEnabled);
-  const newDelay = enabledIntervals[enabledIntervals.findIndex(interval => interval.value === card.currentDelay) + 1]?.value || card.currentDelay;
+  const currentDelayIndex = enabledIntervals.findIndex(interval => interval.value === card.currentDelay);
+  const newDelay = getNewDelay(enabledIntervals, currentDelayIndex, card, isSuccessful);
   nextQuestionAt.setSeconds(nextQuestionAt.getSeconds() + newDelay);
   card.currentDelay = newDelay;
   card.nextQuestionAt = nextQuestionAt.valueOf();
