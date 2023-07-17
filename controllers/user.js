@@ -196,18 +196,38 @@ async function answers(request, response) {
                                            _id: delay,
                                            average: delayAverage,
                                            succesfulAnswers,
-                                           wrongAnswers,
+                                           createdAt,
                                            total
                                          }) => {
     return {
       total,
       delay,
       delayAverage,
+      createdAt,
       successfulAnswersRate: Math.round(succesfulAnswers / total * 10000) / 100
     }
   });
 
-  response.json({ answersStats });
+  /**
+   * Calculate the total elapsed time by the user
+   */
+  const totalElapsedTime = answersStats.reduce((acc, { createdAt }) => {
+    /**
+     * If the difference between the last createdAt and the current one is more than 30 seconds, add 30 seconds
+     * Else, add the difference
+     */
+
+    const lastCreatedAt = acc[acc.length - 1] ? acc[acc.length - 1].createdAt : null;
+    const difference = lastCreatedAt ? createdAt - lastCreatedAt : 0;
+    if (30000 < difference) {
+      acc+= 30000;
+    } else {
+      acc+= difference;
+    }
+
+    return acc;
+  }, 0);
+  response.json({ answersStats, totalElapsedTime });
 }
 
 
