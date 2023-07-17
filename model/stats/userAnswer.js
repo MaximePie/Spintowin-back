@@ -13,6 +13,7 @@ const userAnswerSchema = mongoose.Schema({
     cardDelay: {type: Number, default: 0},
     isSuccessful: {type: Boolean, default: false},
     answerDelay: {type: Number, defalut: 5000},
+    createdAt: {type: Date, default: Date.now},
 });
 
 /**
