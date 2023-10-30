@@ -3,4 +3,4 @@ export function requiredExpForNextLevel(currentLevel) {
 }
 
 // 50 is a weird and annoying behaviour of the app
-export const DISPLAYED_CARD_LIMIT = 49;
+export const DISPLAYED_CARD_LIMIT = 2300;
